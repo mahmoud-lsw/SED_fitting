@@ -47,4 +47,3 @@ for j in range(127):
                     output[m,:] = np.array([m+1, all_obj_specz[m], 0.01*(zmin+1), ages[j], float(tauvals[l]), EBV, const[m, 0, zmin], chivals[m, zmin]])
     np.savetxt("photoz.txt", output, header="obj_no spec_z phot_z age tau EBV norm chi")
 
-# github test laptop FFS working?
