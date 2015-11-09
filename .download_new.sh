@@ -4,7 +4,6 @@ echo Downloading latest version
 
 now=$(date)
 
-git add .
-git commit -m "$now"
+cp . ../backup_SED_fitting
 
 git pull origin master
