@@ -4,6 +4,7 @@ import matplotlib as mpl
 
 data = np.loadtxt("photoz.txt")
 
+### Find the number of data points, catastrophic outliers and sigma_dz
 no = 0.
 cat = 0.
 dz = (data[:,1] - data[:,2])/(1+data[:,1])
@@ -13,6 +14,10 @@ for i in range(len(data)):
     if data[i,1] > 0.:
         no = no+1.
 
+print "Including catastrophic outliers" 
+print no, cat, sig_dz
+
+### Remove catastrophic outliers from data sample: returns wellfit as the clean version of data
 gooddata = []
 
 for i in range(len(data)):
@@ -21,32 +26,23 @@ for i in range(len(data)):
     else:
         gooddata.append(i)
 
-
-print no, cat, sig_dz
-
-
 wellfit = np.zeros(len(gooddata)*8)
 wellfit.shape = (len(gooddata), 8)
 
 for i in range(len(gooddata)):
     wellfit[i, :] = data[gooddata[i], :]
 
-
-maxxy = np.max([np.max(data[:,1]), np.max(data[:,2])]) + 0.05
-
+### Calculate star formation rates and stellar masses for the full sample and for the well fit sample
 SFR = (1./(data[:,4]*10**9))*np.exp(-data[:,3]/(data[:,4]*10**9))*data[:,6]
 mass = (1. - np.exp(-data[:,3]/(data[:,4]*10**9)))*data[:,6]
-"""
-for i in range(len(SFR)):
-    if SFR[i] < 10**-5:
-        print SFR[i], (1./(data[i,4]*10**9)), np.exp(-data[i,3]/(data[i,4]*10**9)), data[i,6]
-"""
-
-
 
 good_SFR = (1./(wellfit[:,4]*10**9))*np.exp(-wellfit[:,3]/(wellfit[:,4]*10**9))*wellfit[:,6]
 good_mass = (1. - np.exp(-wellfit[:,3]/(wellfit[:,4]*10**9)))*wellfit[:,6]
 
+
+### Various plotting codes
+"""
+maxxy = np.max([np.max(data[:,1]), np.max(data[:,2])]) + 0.05
 pylab.figure()
 pylab.scatter(data[:,1], data[:,2], c = data[:,3], norm=mpl.colors.LogNorm())
 pylab.plot([0., maxxy], [0., maxxy], color="black", lw=2)
@@ -79,5 +75,5 @@ pylab.xscale("log")
 pylab.ylabel("SFR (Solar Masses per year)", size="16")
 pylab.ylim(10**-11, 5*10**3)
 pylab.show()
-
+"""
 
