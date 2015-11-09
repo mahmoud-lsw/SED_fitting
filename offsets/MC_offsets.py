@@ -3,8 +3,6 @@ import pylab
 from scipy.optimize import minimize
 import random as r
 
-f = open("offsets.txt", "a")
-
 def chisq(param, binmidp, weights):
     errs = np.sqrt(weights)
     for i in range(len(errs)):
@@ -48,7 +46,10 @@ for k in range(1000):
     f.write(" \n")
 f.close()
 """
-meanvals = np.loadtxt("offsets.txt")
+meanvals = np.loadtxt("MC_offsets.txt")
+
+offsets = np.zeros(24, dtype="float")
+offsets.shape = (12, 2)
 
 for i in range(12):
     """
@@ -56,4 +57,6 @@ for i in range(12):
     pylab.hist(meanvals[:, i])
     pylab.show()
     """
-    print np.mean(meanvals[:, i]), np.std(meanvals[:, i])
+    offsets[i,:] = np.mean(meanvals[:, i]), np.std(meanvals[:, i])
+print offsets
+np.savetxt("mean_offsets_with_errors.txt", offsetsls)
