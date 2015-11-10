@@ -33,7 +33,7 @@ for i in range(12): # If the offset is consistent with zero to within 1 sigma do
         offset_errs[0, i, 0] = 0.
 
 all_obj_fluxes = all_obj_fluxes + offsets
-
+all_obj_fluxerrs = np.sqrt(all_obj_fluxerrs**2 + offset_errs**2)
 
 ### Build array for photometric redshift and parameter outputs
 output = np.zeros(len(all_obj_fluxes)*8, dtype="float")
