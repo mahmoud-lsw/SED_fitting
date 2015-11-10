@@ -91,5 +91,5 @@ for k in range(len(all_obj_fluxes)):
         best_norm_array = np.loadtxt("synmags_T" + tauvals[np.argmin(minchis)] + "/normarrays/obj_" + str(k+1) + ".txt")
         best_EBV_array = np.loadtxt("synmags_T" + tauvals[np.argmin(minchis)] + "/EBVarrays/obj_" + str(k+1) + ".txt")
         output[k,:] = np.array([k+1, all_obj_specz[k], 0.01*(x+1), ages[y], float(tauvals[np.argmin(minchis)]), best_EBV_array[x, y], best_norm_array[x, y], best_chi_array[x, y]])
-        np.savetxt("photoz.txt", output, header="obj_no spec_z phot_z age tau EBV norm chi")
+        np.savetxt("photoz_v3.txt", output, header="obj_no spec_z phot_z age tau EBV norm chi")
 
