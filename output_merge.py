@@ -20,4 +20,4 @@ for m in range(len(file1)):
     else:
         print "well shit..."
 
-np.savetxt("photoz.txt", output)
+np.savetxt("photoz.txt", output, header="obj_no spec_z phot_z age tau EBV norm chi")
