@@ -14,9 +14,9 @@ coef[3:] = 1.217/wavs[3:] - 0.393
 
 
 ### Load up the galaxy catalogue and list of stellar population ages to be fit
-all_obj_specz = np.loadtxt("galaxy_photom_specz_adam_zless5.cat", usecols=(27,))
-all_obj_fluxes = np.expand_dims(np.loadtxt("galaxy_photom_specz_adam_zless5.cat", usecols=(1,2,3,4,5,6,7,8,9,10,11,12)), axis=2)
-all_obj_fluxerrs = np.expand_dims(np.loadtxt("galaxy_photom_specz_adam_zless5.cat", usecols=(13,14,15,16,17,18,19,20,21,22,23,24)), axis=2)
+all_obj_specz = np.loadtxt("galaxy_photom_specz_adam_firstfive.cat", usecols=(27,))
+all_obj_fluxes = np.expand_dims(np.loadtxt("galaxy_photom_specz_adam_firstfive.cat", usecols=(1,2,3,4,5,6,7,8,9,10,11,12)), axis=2)
+all_obj_fluxerrs = np.expand_dims(np.loadtxt("galaxy_photom_specz_adam_firstfive.cat", usecols=(13,14,15,16,17,18,19,20,21,22,23,24)), axis=2)
 ages = np.loadtxt("ages.txt")
 
 
@@ -35,9 +35,13 @@ for i in range(12): # If the offset is consistent with zero to within 1 sigma do
     if np.abs(offsets[0, i, 0]) < offset_errs[0, i, 0]:
         offsets[0, i, 0] = 0.
         offset_errs[0, i, 0] = 0.
+        
+print offsets
 
+print all_obj_fluxes[0,:,:]
 all_obj_fluxes = all_obj_fluxes + offsets
 all_obj_fluxerrs = np.sqrt(all_obj_fluxerrs**2 + offset_errs**2)
+print all_obj_fluxes[0,:,:]
 
 ### Build array for photometric redshift and parameter outputs
 output = np.zeros(len(all_obj_fluxes)*8, dtype="float")

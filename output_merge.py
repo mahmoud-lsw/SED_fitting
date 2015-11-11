@@ -5,10 +5,14 @@ file2 = np.loadtxt("photoz_21_42.txt")
 file3 = np.loadtxt("photoz_43_64.txt")
 file4 = np.loadtxt("photoz_65_126.txt")
 
+print file1, file2, file3, file4
+raw_input()
+
 output = np.copy(file1)
 
 for m in range(len(file1)):
-    minarr = np.argmin([file1[:,7], file2[:,7], file3[:,7], file4[:,7]])
+    minarr = np.argmin([file1[m,7], file2[m,7], file3[m,7], file4[m,7]])
+    print minarr
     if minarr == 0:
         output[m,:] = file1[m,:]
     elif minarr == 1:
