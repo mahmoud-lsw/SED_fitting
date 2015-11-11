@@ -11,4 +11,4 @@ python output_merge.py
 
 wait
 
-#rm photoz_0_20.txt photoz_21_42.txt photoz_43_64.txt photoz_65_126.txt
+rm photoz_0_20.txt photoz_21_42.txt photoz_43_64.txt photoz_65_126.txt
