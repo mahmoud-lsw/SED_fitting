@@ -5,6 +5,7 @@ import matplotlib as mpl
 data = np.loadtxt("photoz/photoz_full_set_no_offsets.txt")
 #data = np.loadtxt("photoz/photoz_allbandobj_v3.txt")
 #data = np.loadtxt("photoz/photoz_offsets_EBV1.5.txt")
+#data = np.loadtxt("photoz.txt")
 
 ### Find the number of data points, catastrophic outliers and sigma_dz
 no = 0.

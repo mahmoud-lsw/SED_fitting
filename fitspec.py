@@ -20,24 +20,24 @@ all_obj_fluxerrs = np.expand_dims(np.loadtxt("galaxy_photom_specz_adam_zless5.ca
 ages = np.loadtxt("ages.txt")
 
 
+### Apply offsets to the data as calculated by code in offsets/ in order to deal with various systematic calibration errors
+offsets = np.expand_dims(np.expand_dims(np.loadtxt("offsets/mean_ratios_with_errors.txt", usecols=(0,)), axis=0), axis=2)
+offset_errs = np.expand_dims(np.expand_dims(np.loadtxt("offsets/mean_ratios_with_errors.txt", usecols=(1,)), axis=0), axis=2)
+
+for i in range(12): # If the offset is consistent with zero to within 1 sigma do nothing
+    if np.abs(offsets[0, i, 0] - 1.) < offset_errs[0, i, 0]:
+        offsets[0, i, 0] = 1.
+        offset_errs[0, i, 0] = 0.
+
+all_obj_fluxes = all_obj_fluxes*offsets
+all_obj_fluxerrs = all_obj_fluxes*np.sqrt((all_obj_fluxerrs/all_obj_fluxes)**2 + (offset_errs/offsets)**2)
+
+
 ### For all objects which have not been observed in a given band, blow up the associated error so fit is not affected
 for i in range(len(all_obj_fluxes)):
     for j in range(12):
         if all_obj_fluxes[i, j, 0] == 0.:
             all_obj_fluxerrs[i, j, 0] = 9999999999.
-
-
-### Apply offsets to the data as calculated by code in offsets/ in order to deal with various systematic calibration errors
-offsets = np.expand_dims(np.expand_dims(np.loadtxt("offsets/mean_offsets_with_errors.txt", usecols=(0,)), axis=0), axis=2)
-offset_errs = np.expand_dims(np.expand_dims(np.loadtxt("offsets/mean_offsets_with_errors.txt", usecols=(1,)), axis=0), axis=2)
-
-for i in range(12): # If the offset is consistent with zero to within 1 sigma do nothing
-    if np.abs(offsets[0, i, 0]) < offset_errs[0, i, 0]:
-        offsets[0, i, 0] = 0.
-        offset_errs[0, i, 0] = 0.
-
-all_obj_fluxes = all_obj_fluxes + offsets
-all_obj_fluxerrs = np.sqrt(all_obj_fluxerrs**2 + offset_errs**2)    
 
 ### Build array for photometric redshift and parameter outputs
 output = np.zeros(len(all_obj_fluxes)*8, dtype="float")
@@ -57,7 +57,7 @@ for j in range(agemin, agemax+1):
     for l in range(3):
         print "Age: " + str(ages[j]) + ", fitting to redshift " + str((arg+1)*0.01) + ", with tau: " + tauvals[l]
         th_mag_array = np.loadtxt("models/" + tauvals[l] + "/synmags_age_" + str(ages[j]) + ".txt", usecols=(1,2,3,4,5,6,7,8,9,10,11,12))[0:arg, :]
-        for k in range(21):
+        for k in range(101):
             EBV = 0.025*k
             th_flux_array = np.expand_dims((10**((23.9 - EBV*coef - th_mag_array)/2.5)).T, axis=0) #microjanskys
             const =  np.expand_dims(np.sum(all_obj_fluxes*th_flux_array/all_obj_fluxerrs**2, axis=1)/np.sum(th_flux_array**2/all_obj_fluxerrs**2, axis=1), axis=1)
