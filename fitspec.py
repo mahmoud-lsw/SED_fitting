@@ -21,16 +21,16 @@ ages = np.loadtxt("ages.txt")
 
 
 ### Apply offsets to the data as calculated by code in offsets/ in order to deal with various systematic calibration errors
-offsets = np.expand_dims(np.expand_dims(np.loadtxt("offsets/mean_ratios_with_errors.txt", usecols=(0,)), axis=0), axis=2)
-offset_errs = np.expand_dims(np.expand_dims(np.loadtxt("offsets/mean_ratios_with_errors.txt", usecols=(1,)), axis=0), axis=2)
+offsets = np.expand_dims(np.expand_dims(np.loadtxt("zeropoints/ratios/mean_ratios_with_errors.txt", usecols=(0,)), axis=0), axis=2)
+offset_errs = np.expand_dims(np.expand_dims(np.loadtxt("zeropoints/ratios/mean_ratios_with_errors.txt", usecols=(1,)), axis=0), axis=2)
 
 for i in range(12): # If the offset is consistent with zero to within 1 sigma do nothing
     if np.abs(offsets[0, i, 0] - 1.) < offset_errs[0, i, 0]:
         offsets[0, i, 0] = 1.
         offset_errs[0, i, 0] = 0.
 
-all_obj_fluxes = all_obj_fluxes*offsets
-all_obj_fluxerrs = all_obj_fluxes*np.sqrt((all_obj_fluxerrs/all_obj_fluxes)**2 + (offset_errs/offsets)**2)
+all_obj_fluxes = all_obj_fluxes/offsets
+all_obj_fluxerrs = all_obj_fluxes*np.sqrt((all_obj_fluxerrs/all_obj_fluxes)**2 + (offset_errs/offsets**3)**2)
 
 
 ### For all objects which have not been observed in a given band, blow up the associated error so fit is not affected

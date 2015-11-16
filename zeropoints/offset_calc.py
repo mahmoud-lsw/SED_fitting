@@ -54,7 +54,7 @@ for m in range(firstobj, lastobj+1):
             if np.min(chivals) < output[m-firstobj,7]:
                 minchi = np.argmin(chivals)
                 output[m-firstobj,:] = np.array([m+1, all_obj_specz[m], z, ages[j], float(tauvals[l]), EBV[minchi], const[minchi, 0], chivals[minchi]])
-                flux_diffs[m-firstobj, :] = (th_flux_array[minchi, :]*const[minchi, 0] - obj_fluxes)/obj_fluxes
+                flux_diffs[m-firstobj, :] = obj_fluxes/(th_flux_array[minchi, :]*const[minchi, 0])
     #np.savetxt("photoz_offsetcalc.txt", output, header="obj_no spec_z phot_z age tau EBV norm chi")
     
     np.savetxt("flux_fracoffsets_" + str(firstobj) + "_" + str(lastobj) + ".txt", flux_diffs)
