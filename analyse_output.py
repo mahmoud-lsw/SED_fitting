@@ -2,7 +2,7 @@ import numpy as np
 import pylab
 import matplotlib as mpl
 
-data = np.loadtxt("photoz/photoz_EBV1.5.txt")
+data = np.loadtxt("photoz/photoz_sEBV1.5.txt")
 #data = np.loadtxt("photoz/photoz_allbandobj_v3.txt")
 #data = np.loadtxt("photoz/photoz_offsets_EBV1.5.txt")
 #data = np.loadtxt("photoz.txt")
