@@ -2,14 +2,28 @@ import numpy as np
 from astropy.io import fits
 import pylab
 
-hdulist1 = fits.open("spectra/sc_206024_UDS_P1M1_MR_Q1_018_3.fits")
-#print hdulist1.info()sc_206806_UDS_P1M1_MR_Q1_029_1.fits
+def specbin(spec, binn):
+    if int(2*len(spec)/binn) != 2*int(len(spec)/binn):
+        binned = np.zeros(2*len(spec)/binn -1)
+    else:
+        binned = np.zeros(2*len(spec)/binn)
+    
+    binned.shape = (len(spec)/binn, 2)
+    for i in range(len(binned)):
+        binned[i, 0] = np.mean(spec[binn*i:binn*i+binn, 0])
+        binned[i, 1] = np.mean(spec[binn*i:binn*i+binn, 1])
+    return binned
+
+hdulist1 = fits.open("../../VANDELS_data/spectra/sc_206806_UDS_P1M1_MR_Q1_029_1.fits")
+print hdulist1.info()
+#sc_206024_UDS_P1M1_MR_Q1_018_3.fits
 
 wavzpt = hdulist1[0].header["CRVAL1"]
 dwav = hdulist1[0].header["CDELT1"]
+print dwav
 
 
-fluxes1 = hdulist1[0].data#*10**19
+fluxes1 = hdulist1[4].data#*10**19
 
 sky1 = hdulist1[2].data
 noise1 = hdulist1[3].data#*10**19
@@ -25,12 +39,21 @@ noise1 = hdulist1[3].data#*10**19
 maxwav = wavzpt + dwav*(len(fluxes1))
 wavs = np.arange(wavzpt, maxwav, dwav)
 
+spec = np.zeros(2*len(fluxes1), dtype="float")
+spec.shape = (len(fluxes1), 2)
+
+spec[:,1] = fluxes1
+spec[:,0] = wavs
+
+binspec = specbin(spec, 2)
+
 pylab.figure()
-pylab.plot(wavs, fluxes1, color="black")
-#pylab.plot(wavs, sky1, color="blue")
-pylab.plot(wavs, noise1, color="red")
+pylab.plot(wavs, fluxes1, color="black", zorder=5)
+pylab.plot(wavs, sky1, color="blue")
+#pylab.plot(wavs, noise1, color="blue", zorder=1)
+#pylab.plot(binspec[:,0], binspec[:,1], color="red", zorder=8)
 pylab.xlabel("Wavelength (Angstroms)", size=16)
-pylab.plot([5000, 9000], [0., 0.], color="black")
+pylab.plot([5000, 9000], [0., 0.], color="black", zorder=0)
 pylab.xlim(5000, 9000)
 pylab.ylim(-0.5*10**-18, 2*10**-18)
 pylab.ylabel("Flux", size=16)
