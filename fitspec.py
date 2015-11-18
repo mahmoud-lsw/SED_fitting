@@ -57,7 +57,7 @@ for j in range(agemin, agemax+1):
     for l in range(3):
         print "Age: " + str(ages[j]) + ", fitting to redshift " + str((arg+1)*0.01) + ", with tau: " + tauvals[l]
         th_mag_array = np.loadtxt("models/" + tauvals[l] + "/synmags_age_" + str(ages[j]) + ".txt", usecols=(1,2,3,4,5,6,7,8,9,10,11,12))[0:arg, :]
-        for k in range(101):
+        for k in range(21):
             EBV = 0.025*k
             th_flux_array = np.expand_dims((10**((23.9 - EBV*coef - th_mag_array)/2.5)).T, axis=0) #microjanskys
             const =  np.expand_dims(np.sum(all_obj_fluxes*th_flux_array/all_obj_fluxerrs**2, axis=1)/np.sum(th_flux_array**2/all_obj_fluxerrs**2, axis=1), axis=1)
