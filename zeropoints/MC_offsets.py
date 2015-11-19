@@ -77,11 +77,16 @@ for i in range(12):
     pylab.show()
     
     offsets[i,:] = np.mean(meanvals[:, i]), np.std(meanvals[:, i])
-print offsets
+#print offsets
+"""
 for i in range(12):
     if (offsets[i,0] - 1) < offsets[i,1]:
         print 1., 0.
     else:
         print offsets[i,0], offsets[i,1]
-         
+"""
+for i in range(12): #use medians instead of all that complicated stuff
+    offsets[i,0] = np.median(data[i,:])
+    offsets[i,1] = 0.
+print offsets
 np.savetxt("mean_ratios_with_errors.txt", offsets)

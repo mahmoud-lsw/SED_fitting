@@ -4,8 +4,8 @@ import matplotlib as mpl
 
 #data = np.loadtxt("photoz/photoz_EBV1.5.txt")
 #data = np.loadtxt("photoz/photoz_allbandobj_v3.txt")
-data = np.loadtxt("photoz/photoz_ratios_EBV2.5.txt")
-datalored = np.loadtxt("photoz/photoz_ratios_EBV0.5.txt")
+#data = np.loadtxt("photoz/photoz_ratios_EBV2.5.txt")
+data = np.loadtxt("photoz/photoz_medianratios_EBV0.5.txt")
 #data = np.loadtxt("photoz.txt")
 
 ### Find the number of data points, catastrophic outliers and sigma_dz
@@ -86,7 +86,7 @@ pylab.ylabel("SFR (Solar Masses per year)", size="16")
 pylab.ylim(10**-11, 5*10**3)
 pylab.show()
 """
-
+"""
 highred = []
 
 for i in range(len(data)):
@@ -165,3 +165,4 @@ newdz = (diffred[:,1] - diffred[:,2])/(1+diffred[:,1])
 new_sig_dz = np.std(newdz)
 
 print "old: " + str(old_sig_dz) + " new: " + str(new_sig_dz)
+"""
