@@ -13,15 +13,16 @@ from astropy.cosmology import WMAP9 as cosmo
 
 tauvals = np.array([0.05, 1, 10], dtype="str")
 
-SED_file = open(SEDpath+"P94_chab_zsun_1gyrburst/P94_chab_zsun_1gyrburst.ised_ASCII")
+SED_file = open(SEDpath+"models/Padova1994/chabrier/bc2003_hr_stelib_m62_chab_ssp.ised_ASCII")
 ages = np.array(SED_file.readline().split(), dtype="float")[1:] #ages[0] = 0.
 SED_file.close()
-print ages[129], ages[132], ages[135], ages[160], ages[162], ages[167], ages[175], ages[179]
+print ages[129], ages[133], ages[136], ages[138], ages[141], ages[144], ages[149], ages[152], ages[156]
+raw_input()
 
-specdata = np.genfromtxt(SEDpath+"P94_chab_zsun_1gyrburst/P94_chab_zsun_1gyrburst.ised_ASCII", skip_header = 6, skip_footer=12, usecols=np.arange(1, 6918), dtype="float") #specdata[1, :] is for 0 Gyr
-agevals = np.array([129,132,135,160,162,167,175,179])
+specdata = np.genfromtxt(SEDpath+"models/Padova1994/chabrier/bc2003_hr_stelib_m62_chab_ssp.ised_ASCII", skip_header = 6, skip_footer=12, usecols=np.arange(1, 6918), dtype="float") #specdata[1, :] is for 0 Gyr
+agevals = np.array([129,133,136,138,141,144,149,152,156])
 
-for j in range(8):
+for j in range(9):
     spectrum = np.array([specdata[0, :], specdata[agevals[j]+1, :]]).T
     synmags = np.zeros(13*500, dtype="float")
     synmags.shape = (500, 13)
@@ -29,7 +30,7 @@ for j in range(8):
 
     for i in range(1, 501):
         z = 0.01*i
-        if ages[j]*(10**-9) < 14.00 - cosmo.lookback_time(z).value:
+        if ages[agevals[j]]*(10**-9) < 14.00 - cosmo.lookback_time(z).value:
             print "Calculating colours for age: " + str(ages[agevals[j]]) + " and redshift: " + str(z) + ", total age: " + str(ages[agevals[j]]*(10**-9) + cosmo.lookback_time(z).value)
             zspectrum = np.copy(spectrum)
             zspectrum[:,1] = zspectrum[:,1]*3.826*10**33 #luminosity in erg/s/A
@@ -40,5 +41,5 @@ for j in range(8):
             th_mags = s.AB_mags_Guo(zspectrum)
             synmags[i-1, 1:] = th_mags
 
-    np.savetxt("models/1gyrburst/synmags_age_" + str(ages[agevals[j]]) + ".txt", synmags)
+    np.savetxt("models/burst/synmags_age_" + str(ages[agevals[j]]) + ".txt", synmags)
 

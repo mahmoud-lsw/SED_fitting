@@ -21,8 +21,8 @@ ages = np.loadtxt("ages.txt")
 
 
 ### Apply offsets to the data as calculated by code in zeropoints/ in order to deal with various systematic calibration errors
-offsets = np.expand_dims(np.expand_dims(np.loadtxt("zeropoints/median_ratios.txt", usecols=(0,)), axis=0), axis=2)
-offset_errs = np.expand_dims(np.expand_dims(np.loadtxt("zeropoints/median_ratios.txt", usecols=(1,)), axis=0), axis=2)
+offsets = np.expand_dims(np.expand_dims(np.loadtxt("zeropoints/ratios/mean_ratios_with_errors.txt", usecols=(0,)), axis=0), axis=2)
+offset_errs = np.expand_dims(np.expand_dims(np.loadtxt("zeropoints/ratios/mean_ratios_with_errors.txt", usecols=(1,)), axis=0), axis=2)
 
 for i in range(12): # If the offset is consistent with zero to within 1 sigma do nothing
     if np.abs(offsets[0, i, 0] - 1.) < offset_errs[0, i, 0]:
