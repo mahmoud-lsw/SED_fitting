@@ -1,9 +1,9 @@
 !#/bin/bash
 
-python fitspec_2comp.py 0 1 &
-python fitspec_2comp.py 2 3 &
-python fitspec_2comp.py 4 5 &
-python fitspec_2comp.py 6 7 &
+python fitspec_2comp.py 0 13 &
+python fitspec_2comp.py 14 25 &
+python fitspec_2comp.py 26 37 &
+python fitspec_2comp.py 38 50 &
 
 wait
 
@@ -11,4 +11,4 @@ python output_merge_2comp.py
 
 wait
 
-rm photoz_0_1.txt photoz_2_3.txt photoz_4_5.txt photoz_6_7.txt
+rm photoz_0_13.txt photoz_14_25.txt photoz_26_37.txt photoz_38_50.txt

@@ -1,14 +1,14 @@
 import numpy as np
 
-file1 = np.loadtxt("photoz_0_1.txt")
-file2 = np.loadtxt("photoz_2_3.txt")
-file3 = np.loadtxt("photoz_4_5.txt")
-file4 = np.loadtxt("photoz_6_7.txt")
+file1 = np.loadtxt("photoz_0_13.txt")
+file2 = np.loadtxt("photoz_14_25.txt")
+file3 = np.loadtxt("photoz_26_37.txt")
+file4 = np.loadtxt("photoz_38_50.txt")
 
 output = np.copy(file1)
 
 for m in range(len(file1)):
-    minarr = np.argmin([file1[m,10], file2[m,10], file3[m,10], file4[m,10]])
+    minarr = np.argmin([file1[m,9], file2[m,9], file3[m,9], file4[m,9]])
     if minarr == 0:
         output[m,:] = file1[m,:]
     elif minarr == 1:
@@ -20,4 +20,4 @@ for m in range(len(file1)):
     else:
         print "well shit..."
 
-np.savetxt("photoz_2comp.txt", output, header="obj_no spec_z phot_z age_old age_new f_old_V old_modifier tau EBV norm chi")
+np.savetxt("photoz_2comp.txt", output, header="obj_no spec_z phot_z age_old age_new f_old_V old_modifier EBV norm chi")

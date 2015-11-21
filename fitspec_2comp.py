@@ -2,8 +2,8 @@ import numpy as np
 import sys
 from astropy.cosmology import WMAP9
 
-agemin = int(sys.argv[1])
-agemax = int(sys.argv[2])
+foldmin = int(sys.argv[1])
+foldmax = int(sys.argv[2])
 
 ### Build coefficient values to apply Calzetti et al. (2000) dust reddening law fit
 wavs = np.array([3765.1, 4331.5, 5778.3, 7624.6, 7988.1, 9012.0, 10364.5, 12304.9, 15235.9, 21322.8, 35075.1, 44365.8])
@@ -43,40 +43,41 @@ for i in range(len(all_obj_fluxes)):
 ### Build array for photometric redshift and parameter outputs
 output = np.zeros(len(all_obj_fluxes)*10, dtype="float")
 output.shape = (len(all_obj_fluxes), 10)
-output[:,7] = 9999999999.
+output[:,9] = 9999999999.
 
 
 ### Perform model fitting using a 2D chi squared array over object and redshift with max age of stellar pop physically determined
 zarr = np.arange(0.01, 5.001, 0.01)
 lbtarr = WMAP9.lookback_time(zarr).value
     
-for j in range(agemin, agemax+1): #8 old ages to iterate over
+for j in range(9): #8 old ages to iterate over
     arg = 0
     while ages[j]*(10**-9) < 14.0 - lbtarr[arg] and arg < 499:
         arg = arg+1
     for l in range(3):
-        print "Age: " + str(ages[j]) + ", fitting to redshift " + str((arg+1)*0.01) + ", with new starburst of age " + str(newages[l])
-        th_mag_array_old = np.loadtxt("models/burst/synmags_age_" + str(ages[j]) + ".txt", usecols=(1,2,3,4,5,6,7,8,9,10,11,12))[0:arg, :]
-        th_mag_array_new = np.loadtxt("models/const/synmags_age_" + str(newages[l]) + ".txt", usecols=(1,2,3,4,5,6,7,8,9,10,11,12))[0:arg, :]
-        for i in range(101):
-            f_old_V = 0.01*i
-            for n in range(arg):
-                old_modifier = 10**(-(th_mag_array_new[n,3] - th_mag_array_old[n,3])/2.5)*(f_old_V/(1.-f_old_V))
-                th_mag_array_old[n,:] = th_mag_array_old[n,:] + (th_mag_array_new[n,3] - th_mag_array_old[n,3]) #instead of this convert both to fluxes here and then work out ratios
-                th_flux_array_old[n,:] = (f_old_V/(1.-f_old_V))*10**((23.9-(th_mag_array_old[n,:] + th_mag_array_new[n,3] - th_mag_array_old[n,3]))/2.5)
-                th_flux_array_new[n,:] = 10**((23.9-th_mag_array_new[n,:])/2.5)
-                print th_flux_array_old[n,3], th_flux_array_new[n,3]
-                print th_flux_array_new.shape, th_flux_array_old.shape
-                raw_input()
-            for k in range(41):
+        th_mag_array_old = np.loadtxt("models/burst/synmags_age_" + str(ages[j]) + ".txt", usecols=(1,2,3,4,5,6,7,8,9,10,11,12))[:arg, :]
+        th_mag_array_new = np.loadtxt("models/const/synmags_age_" + str(newages[l]) + ".txt", usecols=(1,2,3,4,5,6,7,8,9,10,11,12))[:arg, :]
+        th_flux_array_old = np.copy(th_mag_array_old)
+        th_flux_array_new = np.copy(th_mag_array_new)
+        for i in range(foldmin, foldmax+1):
+            f_old_V = 0.02*i
+            print "Initial burst age: " + str(ages[j]) + ", fitting to redshift " + str((arg+1)*0.01) + ", with new starburst of age " + str(newages[l]) + " and f_old_V " + str(f_old_V)
+            if f_old_V == 1.:
+                old_modifier = np.expand_dims(np.ones(arg, dtype="float"), axis=1)
+                th_flux_array_new = 0.*th_mag_array_new
+            else:    
+                old_modifier = (f_old_V/(1.-f_old_V))*10**((-(np.expand_dims(th_mag_array_new[:,3] - th_mag_array_old[:,3], axis=1)))/2.5)
+                th_flux_array_new = 10**((23.9-th_mag_array_new)/2.5)
+            th_flux_array_old = old_modifier*10**((23.9-th_mag_array_old)/2.5)
+            for k in range(61):
                 EBV = 0.025*k
-                th_flux_array = np.expand_dims((th_flux_array_old + th_flux_array_new)*(10**((-EBV*coef)/2.5)).T, axis=0) #microjanskys #instead of this add the two fluxes separately outside of the exponential
+                th_flux_array = np.expand_dims((th_flux_array_old + th_flux_array_new).T*np.expand_dims((10**((-EBV*coef)/2.5)).T, axis=2), axis=0) #microjanskys
                 const =  np.expand_dims(np.sum(all_obj_fluxes*th_flux_array/all_obj_fluxerrs**2, axis=1)/np.sum(th_flux_array**2/all_obj_fluxerrs**2, axis=1), axis=1)
                 chivals = np.sum((all_obj_fluxes/all_obj_fluxerrs - const*(th_flux_array/all_obj_fluxerrs))**2, axis=1)
                 for m in range(len(chivals)):
-                    if np.min(chivals[m, :]) < output[m,7]:
+                    if np.min(chivals[m, :]) < output[m,9]:
                         zmin = np.argmin(chivals[m, :])
-                        output[m,:] = np.array([m+1, all_obj_specz[m], 0.01*(zmin+1), ages[j], newages[l], f_old_V, old_modifier, float(tauvals[l]), EBV, const[m, 0, zmin], chivals[m, zmin]])
-    np.savetxt("photoz_" + str(agemin) + "_" + str(agemax) + ".txt", output, header="obj_no spec_z phot_z age_old age_new f_old_V old_modifier tau EBV norm chi")
-        
+                        output[m,:] = np.array([m+1, all_obj_specz[m], 0.01*(zmin+1), ages[j], newages[l], f_old_V, old_modifier[zmin], EBV, const[m, 0, zmin], chivals[m, zmin]])
+    np.savetxt("photoz_" + str(foldmin) + "_" + str(foldmax) + ".txt", output, header="obj_no spec_z phot_z age_old age_new f_old_V old_modifier EBV norm chi")
+    
 
