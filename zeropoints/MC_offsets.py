@@ -3,6 +3,8 @@ import pylab
 from scipy.optimize import minimize
 import random as r
 
+med = np.loadtxt("median_ratios.txt", usecols=(0,))
+
 def chisq(param, binmidp, weights):
     errs = np.sqrt(weights)
     for i in range(len(errs)):
@@ -23,13 +25,15 @@ for j in range(12):
     param = optresult["x"]
     #print param, optresult["success"], optresult["fun"]
     model = param[0]*(1/param[2]/np.sqrt(2*np.pi))*np.exp(-((binmidp - param[1])**2)/2./param[2]**2)
-        
+    
     pylab.figure()
     pylab.plot(binmidp, weights, color="blue")
     pylab.plot(binmidp, model, color="red")
     pylab.plot([1., 1.], [0., np.max(weights)*1.2], color="black", lw=2)
+    pylab.plot([med[j], med[j]], [0., np.max(weights)*1.2], color="red", lw=2)
     pylab.ylim(0, np.max(weights)*1.2)
     pylab.show()
+    
 
 
 meanvals = np.zeros(12000, dtype="float")
@@ -64,12 +68,12 @@ for k in range(1000):
         meanvals[k,j] = param[1]
 
 np.savetxt("meanvals.txt", meanvals)
-"""
-meanvals = np.loadtxt("ratios/meanvals.txt")
 
+meanvals = np.loadtxt("ratios/meanvals.txt")
+"""
 offsets = np.zeros(24, dtype="float")
 offsets.shape = (12, 2)
-
+"""
 for i in range(12):
     
     pylab.figure()
@@ -78,7 +82,7 @@ for i in range(12):
     
     offsets[i,:] = np.mean(meanvals[:, i]), np.std(meanvals[:, i])
 #print offsets
-"""
+
 for i in range(12):
     if (offsets[i,0] - 1) < offsets[i,1]:
         print 1., 0.
@@ -86,7 +90,11 @@ for i in range(12):
         print offsets[i,0], offsets[i,1]
 """
 for i in range(12): #use medians instead of all that complicated stuff
-    offsets[i,0] = np.median(data[i,:])
+    validdata = []
+    for j in range(len(data)):
+        if np.abs(data[j, i] - 1) < 0.5:
+            validdata.append(data[j, i])
+    offsets[i,0] = np.median(validdata)
     offsets[i,1] = 0.
 print offsets
-np.savetxt("mean_ratios_with_errors.txt", offsets)
+np.savetxt("median_ratios.txt", offsets) #mean_ratios_with_errors.txt

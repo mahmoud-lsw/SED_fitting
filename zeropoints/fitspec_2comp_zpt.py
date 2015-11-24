@@ -71,6 +71,7 @@ for m in range(firstobj, lastobj+1):
                     if np.min(chivals) < output[m-firstobj,9]:
                         zmin = np.argmin(chivals)
                         flux_diffs[m-firstobj, :] = np.squeeze(obj_fluxes/(th_flux_array*const))
-                        output[m,:] = np.array([m+1, all_obj_specz[m], 0.01*(zmin+1), ages[j], newages[l], f_old_V, old_modifier, EBV, const, chivals])
-                                    
+                        output[m-firstobj,:] = np.array([m+1, all_obj_specz[m], 0.01*(zmin+1), ages[j], newages[l], f_old_V, old_modifier, EBV, const, chivals])
+                                   
+        np.savetxt("photoz_2comp_." + str(firstobj) + "_" + str(lastobj) + "txt", output, header="obj_no spec_z phot_z age_old age_new f_old_V old_modifier EBV norm chi") 
         np.savetxt("flux_fracoffsets_2comp_" + str(firstobj) + "_" + str(lastobj) + ".txt", flux_diffs)

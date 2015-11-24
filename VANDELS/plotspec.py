@@ -23,10 +23,17 @@ dwav = hdulist1[0].header["CDELT1"]
 print dwav
 
 
-fluxes1 = hdulist1[4].data#*10**19
+
 
 sky1 = hdulist1[2].data
+
+fluxes1 = hdulist1[4].data#*10**19
 noise1 = hdulist1[3].data#*10**19
+mednoise = np.median(noise1)
+
+for i in range(len(noise1)):
+    if np.abs(noise1[i] - mednoise) > mednoise*3:
+        noise1[i] = mednoise
 
 #hdulist2 = fits.open("spectra/sc_191361_UDS_P1M1_MR_Q1_053_1.fits")
 #print hdulist2.info()
@@ -49,8 +56,8 @@ binspec = specbin(spec, 2)
 
 pylab.figure()
 pylab.plot(wavs, fluxes1, color="black", zorder=5)
-pylab.plot(wavs, sky1, color="blue")
-#pylab.plot(wavs, noise1, color="blue", zorder=1)
+#pylab.plot(wavs, sky1, color="blue")
+pylab.plot(wavs, noise1, color="blue", zorder=1)
 #pylab.plot(binspec[:,0], binspec[:,1], color="red", zorder=8)
 pylab.xlabel("Wavelength (Angstroms)", size=16)
 pylab.plot([5000, 9000], [0., 0.], color="black", zorder=0)
