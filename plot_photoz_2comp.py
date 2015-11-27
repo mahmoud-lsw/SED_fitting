@@ -1,4 +1,4 @@
-	import numpy as np
+import numpy as np
 import pylab
 import matplotlib as mpl
 
@@ -6,7 +6,7 @@ import matplotlib as mpl
 #data = np.loadtxt("photoz/photoz_allbandobj_v3.txt")
 #data = np.loadtxt("photoz/photoz_ratios_EBV2.5.txt")
 #data = np.loadtxt("photoz/photoz_medianratios_EBV0.5.txt")
-data = np.loadtxt("photoz_2comp.txt")
+data = np.loadtxt("photoz/photoz_2comp_medratios_EBV1.5.txt")
 
 # obj_no spec_z phot_z age_old age_new f_old_V old_modifier EBV norm chi
 
