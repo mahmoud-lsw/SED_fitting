@@ -22,11 +22,11 @@ ages = np.array([508800000.0, 806400000.0, 1139100030.0, 1434000000.0, 170000000
 newages = np.array([10000000.0, 25119000.0, 50000000.0])
 
 ### Apply offsets to the data as calculated by code in zeropoints/ in order to deal with various systematic calibration errors
-offsets = np.expand_dims(np.expand_dims(np.loadtxt("zeropoints/ratios/mean_ratios_with_errors.txt", usecols=(0,)), axis=0), axis=2)
-offset_errs = np.expand_dims(np.expand_dims(np.loadtxt("zeropoints/ratios/mean_ratios_with_errors.txt", usecols=(1,)), axis=0), axis=2)
+offsets = np.expand_dims(np.expand_dims(np.loadtxt("zeropoints/median_ratios_2comp.txt", usecols=(0,)), axis=0), axis=2)
+offset_errs = np.expand_dims(np.expand_dims(np.loadtxt("zeropoints/median_ratios_2comp.txt", usecols=(1,)), axis=0), axis=2)
 
 for i in range(12): # If the offset is consistent with zero to within 1 sigma do nothing
-    if np.abs(offsets[0, i, 0] - 1.) < offset_errs[0, i, 0]:
+    if np.abs(offsets[0, i, 0] - 1.) > 0.:# offset_errs[0, i, 0]:
         offsets[0, i, 0] = 1.
         offset_errs[0, i, 0] = 0.
 
