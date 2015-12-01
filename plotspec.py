@@ -40,8 +40,8 @@ spec[:,2] = noise1
 
 binspec = specbin(spec, 2)[98:-254,:]
 
-all_obj_fluxes = np.expand_dims(np.expand_dims(binspec[:,1], axis=0), axis=2)*10**-3
-all_obj_fluxerrs =  np.expand_dims(np.expand_dims(binspec[:,2], axis=0), axis=2)*10**-3 #It's not obvious what the input units are, I believe they're in W/m^2/s^1 so the conversion I've done is into erg/s/A/cm^2
+all_obj_fluxes = np.expand_dims(np.expand_dims(binspec[:,1], axis=0), axis=2)
+all_obj_fluxerrs =  np.expand_dims(np.expand_dims(binspec[:,2], axis=0), axis=2) #It's not obvious what the input units are, I believe they're in W/m^2/s^1 so the conversion I've done is into erg/s/A/cm^2
 
 ### Build coefficient values to apply Calzetti et al. (2000) dust reddening law fit
 
@@ -82,6 +82,7 @@ output[:,8] = 9999999999.
 
 zarr = np.arange(0.01, 5.001, 0.01)
 lbtarr = cosmo.lookback_time(zarr).value
+f_old_array = 1.01 - np.logspace(-2, 0, 51)
 
 ### Perform model fitting using a 2D chi squared array over object and redshift with max age of stellar pop physically determined
 
@@ -90,36 +91,34 @@ oldage = np.argmin(np.abs(oldages - param[2]))
 newage = np.argmin(np.abs(newages - param[3]))
 redshift_ind = (param[1]/0.01)-1
 f_old_V = param[4]
-old_modifier = param[5]
-EBV = param[6]
-const = param[7]
+EBV = param[5]
+const = param[6]
 
 print "z: " + str(param[1])
 print "old age: " + str(oldages[oldage]) + " new age: " + str(newages[newage])
 print "E(B-V): " + str(EBV)
 print "f_old: " + str(f_old_V)
-print "old_modifier: " + str(old_modifier)
 print "const: " + str(const)
-print "Stellar Mass: " + str(np.round(const*(old_modifier + newages[newage])/10**9, 3)) + "*10^9 Solar masses"
-print "SFR: " + str(const) + " M_sun/yr"
-print "Reduced Chi-squared value: " + str(param[-1]/787.)
+print "Stellar Mass: " + str(param[9]*10**-9) + "*10^9 Solar masses"
+print "SFR: " + str(param[8])
+print "Reduced Chi-squared value: " + str(param[7]/784.)
 
 th_flux_array_new_raw = np.loadtxt("models/spec/newconst/age_" + str(newages[newage]) + ".txt")[:,redshift_ind:redshift_ind+1]#[:,:arg+1]
 th_flux_array_old_raw = np.loadtxt("models/spec/oldburst/age_" + str(oldages[oldage]) + ".txt")[:,redshift_ind:redshift_ind+1]#[:,:arg+1] #erg/s/A/cm^2
 
 if f_old_V == 1.:
-    old_modifier = np.expand_dims(np.ones(arg+1, dtype="float"), axis=0)
     th_flux_array_new = 0.*th_flux_array_new_raw
+    th_flux_array_old = th_flux_array_old_raw
 else:    
-    old_modifier = (f_old_V/(1.-f_old_V))*np.expand_dims(th_flux_array_new_raw[0,:]/th_flux_array_old_raw[0,:], axis=1)
     th_flux_array_new = np.copy(th_flux_array_new_raw)
-th_flux_array_old = old_modifier*th_flux_array_old_raw
+    th_flux_array_old = (f_old_V/(1.-f_old_V))*th_flux_array_old_raw
 th_flux_array = np.expand_dims((th_flux_array_old + th_flux_array_new)*np.expand_dims((10**((-EBV*coef)/2.5)).T, axis=2), axis=0)
-
+th_flux_array_oldonly = np.expand_dims((th_flux_array_old)*np.expand_dims((10**((-EBV*coef)/2.5)).T, axis=2), axis=0)
 
 pylab.figure()
 pylab.plot(binspec[:,0], np.squeeze(all_obj_fluxes), color="blue")
 pylab.plot(binspec[:,0], np.squeeze(th_flux_array*const), color="red", zorder=10)
+pylab.plot(binspec[:,0], np.squeeze(th_flux_array_oldonly*const), color="green", zorder=10)
 pylab.ylim(1.1*np.min(all_obj_fluxes), 1.1*np.max(all_obj_fluxes))
 pylab.xlabel("Wavelength (A)", size=16)
 pylab.ylabel("F_lambda (erg/s/A/cm^2)", size=16)

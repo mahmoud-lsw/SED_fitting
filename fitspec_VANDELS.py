@@ -43,8 +43,8 @@ spec[:,2] = noise1
 
 binspec = specbin(spec, 2)[98:-254,:]
 
-all_obj_fluxes = np.expand_dims(np.expand_dims(binspec[:,1], axis=0), axis=2)*10**-3
-all_obj_fluxerrs =  np.expand_dims(np.expand_dims(binspec[:,2], axis=0), axis=2)*10**-3 #It's not obvious what the input units are, I believe they're in W/m^2/s^1 so the conversion I've done is into erg/s/A/cm^2
+all_obj_fluxes = np.expand_dims(np.expand_dims(binspec[:,1], axis=0), axis=2)
+all_obj_fluxerrs =  np.expand_dims(np.expand_dims(binspec[:,2], axis=0), axis=2) #erg/s/A/cm^2
 
 ### Build coefficient values to apply Calzetti et al. (2000) dust reddening law fit
 
@@ -79,18 +79,19 @@ for i in range(len(all_obj_fluxes)):
             all_obj_fluxerrs[i, j, 0] = 9999999999.
 """
 ### Build array for photometric redshift and parameter outputs
-output = np.zeros(len(all_obj_fluxes)*9, dtype="float")
-output.shape = (len(all_obj_fluxes), 9)
-output[:,8] = 9999999999.
+output = np.zeros(len(all_obj_fluxes)*8, dtype="float")
+output.shape = (len(all_obj_fluxes), 8)
+output[:,7] = 9999999999.
 
 zarr = np.arange(0.01, 5.001, 0.01)
 lbtarr = cosmo.lookback_time(zarr).value
+f_old_array = 1.01 - np.logspace(-2, 0, 51)
 
 ### Perform model fitting using a 2D chi squared array over object and redshift with max age of stellar pop physically determined
 
 
 
-for j in range(9): #8 old ages to iterate over
+for j in range(9): #9 old ages to iterate over
     arg = 0
     while oldages[j]*(10**-9) < 14.0 - lbtarr[arg] and arg < 499:
         arg = arg+1
@@ -98,30 +99,29 @@ for j in range(9): #8 old ages to iterate over
         th_flux_array_new_raw = np.loadtxt("models/spec/newconst/age_" + str(newages[l]) + ".txt")[:,:arg+1]
         th_flux_array_old_raw = np.loadtxt("models/spec/oldburst/age_" + str(oldages[j]) + ".txt")[:,:arg+1] #erg/s/A/cm^2
         for i in range(foldmin, foldmax+1):
-            f_old_V = 0.02*i
+            f_old_V = f_old_array[i]
             print "Initial burst age: " + str(oldages[j]) + ", fitting to redshift " + str((arg+1)*0.01) + ", with new starburst of age " + str(newages[l]) + " and f_old_V " + str(f_old_V)
             if f_old_V == 1.:
-                old_modifier = np.expand_dims(np.ones(arg+1, dtype="float"), axis=0)
                 th_flux_array_new = 0.*th_flux_array_new_raw
+                th_flux_array_old = th_flux_array_old_raw
             else:
-                old_modifier = (f_old_V/(1.-f_old_V))*np.expand_dims(th_flux_array_new_raw[0,:]/th_flux_array_old_raw[0,:], axis=0)
                 th_flux_array_new = np.copy(th_flux_array_new_raw)
-            th_flux_array_old = old_modifier*th_flux_array_old_raw
+                th_flux_array_old = (f_old_V/(1.-f_old_V))*th_flux_array_old_raw
             for k in range(61):
                 EBV = 0.025*k
                 th_flux_array = np.expand_dims((th_flux_array_old + th_flux_array_new)*np.expand_dims((10**((-EBV*coef)/2.5)).T, axis=2), axis=0)
                 const =  np.expand_dims(np.sum(all_obj_fluxes*th_flux_array/all_obj_fluxerrs**2, axis=1)/np.sum(th_flux_array**2/all_obj_fluxerrs**2, axis=1), axis=1)
                 chivals = np.sum((all_obj_fluxes/all_obj_fluxerrs - const*(th_flux_array/all_obj_fluxerrs))**2, axis=1)
                 for m in range(len(chivals)):
-                    if np.min(chivals[m, :]) < output[m,8]:
+                    if np.min(chivals[m, :]) < output[m,7]:
                         zmin = np.argmin(chivals[m, :])
-                        output[m,:] = np.array([m+1, 0.01*(zmin+1), oldages[j], newages[l], f_old_V, old_modifier[0,zmin], EBV, const[m, 0, zmin], chivals[m, zmin]])
-    np.savetxt("photoz_V_" + str(foldmin) + "_" + str(foldmax) + ".txt", output, header="obj_no phot_z age_old age_new f_old_V old_modifier EBV norm chi")
+                        output[m,:] = np.array([m+1, 0.01*(zmin+1), oldages[j], newages[l], f_old_V, EBV, const[m, 0, zmin], chivals[m, zmin]])
+    np.savetxt("photoz_V_" + str(foldmin) + "_" + str(foldmax) + ".txt", output, header="obj_no phot_z age_old age_new f_old_V  EBV norm chi")
     
 
 """
 param = np.loadtxt("photoz_V_0_50.txt") 
-print "obj_no phot_z age_old age_new f_old_V old_modifier EBV norm chi"
+print "obj_no phot_z age_old age_new f_old_V EBV norm chi"
 print param
 oldage = np.argmin(np.abs(oldages - param[2]))
 newage = np.argmin(np.abs(newages - param[3]))

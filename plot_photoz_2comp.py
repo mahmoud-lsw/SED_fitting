@@ -61,7 +61,7 @@ for j in range(len(data_nocat)):
         good_mass[j] = data_nocat[j,8]*data_nocat[j,6]
     else:
         good_SFR[j] = data_nocat[j,8]
-        good_mass[j] = data_nocat[j,8]*(data_nocat[j,6] + data_nocat[j,4])
+        good_mass[j] = data_nocat[j,8]*(data_nocat[j,6] + data_nocat[j,4]) #4 is age new, 6 is old_modifier
 
 
 ### Various plotting codes
