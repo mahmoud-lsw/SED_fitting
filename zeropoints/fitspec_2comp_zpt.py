@@ -29,15 +29,16 @@ for i in range(len(all_obj_fluxes)):
             all_obj_fluxerrs[i, j, 0] = 9999999999.
 
 ### Build array for photometric redshift and parameter outputs
-output = np.zeros((lastobj-firstobj+1)*10, dtype="float")
-output.shape = ((lastobj-firstobj+1), 10)
-output[:,9] = 9999999999.
+output = np.zeros((lastobj-firstobj+1)*9, dtype="float")
+output.shape = ((lastobj-firstobj+1), 9)
+output[:,8] = 9999999999.
 
 
 ### Perform model fitting using a 2D chi squared array over object and redshift with max age of stellar pop physically determined
 zarr = np.arange(0.01, 5.001, 0.01)
 lbtarr = WMAP9.lookback_time(zarr).value
 flux_diffs = np.copy(all_obj_fluxes[firstobj:lastobj+1, :, 0])
+f_old_array = 1.01 - np.logspace(-2, 0, 51)
 
 for m in range(firstobj, lastobj+1):
     print "object " + str(m)
@@ -52,26 +53,26 @@ for m in range(firstobj, lastobj+1):
         for l in range(3):
             th_mag_array_old = np.expand_dims(np.loadtxt("../models/burst/synmags_age_" + str(ages[j]) + ".txt", usecols=(1,2,3,4,5,6,7,8,9,10,11,12))[modelno, :], axis=0)
             th_mag_array_new = np.expand_dims(np.loadtxt("../models/const/synmags_age_" + str(newages[l]) + ".txt", usecols=(1,2,3,4,5,6,7,8,9,10,11,12))[modelno, :], axis=0)
-            th_flux_array_old = np.copy(th_mag_array_old)
-            th_flux_array_new = np.copy(th_mag_array_new)
-            for i in range(0, 51):
-                f_old_V = 0.02*i
-                if f_old_V == 1.:
-                    old_modifier = 1.
-                    th_flux_array_new = 0.*th_mag_array_new
-                else:    
-                    old_modifier = (f_old_V/(1.-f_old_V))*10**((-(np.expand_dims(th_mag_array_new[:,3] - th_mag_array_old[:,3], axis=1)))/2.5)
-                    th_flux_array_new = 10**((23.9-th_mag_array_new)/2.5)
-                th_flux_array_old = old_modifier*10**((23.9-th_mag_array_old)/2.5)
+        th_flux_array_old_raw = 10**((23.9-th_mag_array_old)/2.5)
+        th_flux_array_new_raw = 10**((23.9-th_mag_array_new)/2.5)
+        for i in range(foldmin, foldmax+1):
+            f_old_V = f_old_array[i]
+            print "Initial burst age: " + str(ages[j]) + ", fitting to redshift " + str((arg+1)*0.01) + ", with new starburst of age " + str(newages[l]) + " and f_old_V " + str(f_old_V)
+            if f_old_V == 1.:
+                th_flux_array_new = 0.*th_flux_array_new_raw
+                th_flux_array_old = np.copy(th_flux_array_old_raw)
+            else:
+                th_flux_array_new = np.copy(th_flux_array_new_raw)
+                th_flux_array_old = (f_old_V/(1.-f_old_V))*th_flux_array_old_raw
                 for k in range(61):
                     EBV = 0.025*k
                     th_flux_array = np.expand_dims((th_flux_array_old + th_flux_array_new).T*np.expand_dims((10**((-EBV*coef)/2.5)).T, axis=2), axis=0) #microjanskys
                     const =  np.expand_dims(np.sum(obj_fluxes*th_flux_array/obj_fluxerrs**2, axis=1)/np.sum(th_flux_array**2/obj_fluxerrs**2, axis=1), axis=1)
                     chivals = np.sum((obj_fluxes/obj_fluxerrs - const*(th_flux_array/obj_fluxerrs))**2, axis=1)
-                    if np.min(chivals) < output[m-firstobj,9]:
+                    if np.min(chivals) < output[m-firstobj,8]:
                         zmin = np.argmin(chivals)
                         flux_diffs[m-firstobj, :] = np.squeeze(obj_fluxes/(th_flux_array*const))
-                        output[m-firstobj,:] = np.array([m+1, all_obj_specz[m], 0.01*(zmin+1), ages[j], newages[l], f_old_V, old_modifier, EBV, const, chivals])
+                        output[m-firstobj,:] = np.array([m+1, all_obj_specz[m], 0.01*(zmin+1), ages[j], newages[l], f_old_V, EBV, const, chivals])
                                    
-        np.savetxt("photoz_2comp_." + str(firstobj) + "_" + str(lastobj) + "txt", output, header="obj_no spec_z phot_z age_old age_new f_old_V old_modifier EBV norm chi") 
+        np.savetxt("photoz_2comp_." + str(firstobj) + "_" + str(lastobj) + "txt", output, header="obj_no spec_z phot_z age_old age_new f_old_V EBV norm chi") 
         np.savetxt("flux_fracoffsets_2comp_" + str(firstobj) + "_" + str(lastobj) + ".txt", flux_diffs)
