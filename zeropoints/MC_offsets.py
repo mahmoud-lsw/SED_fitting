@@ -3,8 +3,6 @@ import pylab
 from scipy.optimize import minimize
 import random as r
 
-med = np.loadtxt("median_ratios.txt", usecols=(0,))
-
 def chisq(param, binmidp, weights):
     errs = np.sqrt(weights)
     for i in range(len(errs)):
@@ -12,7 +10,7 @@ def chisq(param, binmidp, weights):
             errs[i] = 1.
     return np.sum(((param[0]*(1/param[2]/np.sqrt(2*np.pi))*np.exp(-((binmidp - param[1])**2)/2./param[2]**2) - weights)/errs)**2)
 
-data = np.loadtxt("flux_fracoffsets_2comp.txt")
+data = np.loadtxt("flux_ratios_2comp.txt")
 
 ratios_median = np.zeros(24, dtype="float")
 ratios_median.shape = (12, 2)
@@ -39,10 +37,10 @@ for j in range(12):
     pylab.ylim(0, np.max(weights)*1.2)
     pylab.show()
     """
-    ratios_mean[j,:] = param[1], 0.
+    #ratios_mean[j,:] = param[1], 0.
     
 
-"""
+
 meanvals = np.zeros(12000, dtype="float")
 meanvals.shape = (1000, 12)
 
@@ -64,23 +62,27 @@ for k in range(1000):
         param = optresult["x"]
         #print param, optresult["success"], optresult["fun"]
         #model = param[0]*(1/param[2]/np.sqrt(2*np.pi))*np.exp(-((binmidp - param[1])**2)/2./param[2]**2)
-        
+        """
         pylab.figure()
         pylab.plot(binmidp, weights, color="blue")
         pylab.plot(binmidp, model, color="red")
         pylab.plot([1., 1.], [0., np.max(weights)*1.2], color="black", lw=2)
         pylab.ylim(0, np.max(weights)*1.2)
         pylab.show()
-        
+        """
         meanvals[k,j] = param[1]
-"""
+
 
 
 for i in range(12):
+    ratios_mean[i,:] = np.mean(meanvals[:,i]), np.std(meanvals[:,i])
     if (ratios_mean[i,0] - 1) < ratios_mean[i,1]:
+        ratios_mean[i,:] = np.array([1, 0])
+"""
         print 1., 0.
     else:
         print ratios_mean[i,0], ratios_mean[i,1]
+"""
 
 for i in range(12): #use medians instead of all that complicated stuff
     validdata = []

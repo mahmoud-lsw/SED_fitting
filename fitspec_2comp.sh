@@ -11,4 +11,4 @@ python output_merge_2comp.py
 
 wait
 
-rm photoz_0_13.txt photoz_14_25.txt photoz_26_37.txt photoz_38_50.txt
+#rm photoz_0_13.txt photoz_14_25.txt photoz_26_37.txt photoz_38_50.txt

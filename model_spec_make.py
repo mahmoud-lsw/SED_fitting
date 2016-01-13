@@ -2,9 +2,10 @@ import numpy as np
 from astropy.io import fits
 from astropy.cosmology import WMAP9 as cosmo
 import pylab
-SEDpath = "/disk1/adamc/progs/bc03/"
+import sys
+SEDpath = "../progs/bc03/"
 
-
+tau = int(sys.argv[1])
 
 """bins up spectrum consisting of a column of wavelength values, a column of fluxes and a column of flux errors by factor binn"""
 def specbin(spec, binn): 
@@ -111,91 +112,60 @@ fluxes1 = hdulist1[4].data#*10**19
 
 maxwav = wavzpt + dwav*(len(fluxes1))
 objwavs_nobin = np.arange(wavzpt, maxwav, dwav)
-
+tauvals = np.array([0.05, 1, 10], dtype="str")
 objwavs = specbin(objwavs_nobin, 2)
-
-objfilter = np.ones(len(objwavs[98:-254])*2, dtype="float")
-objfilter.shape = (len(objwavs[98:-254]), 2)
-objfilter[:,0] = objwavs[98:-254]
-
-### Load up the spectral models to fit
-
-old_SED_file = open(SEDpath+"models/Padova1994/chabrier/bc2003_hr_stelib_m62_chab_ssp.ised_ASCII")
-oldages = np.array(old_SED_file.readline().split(), dtype="float")[1:] #ages[0] = 0.
-old_SED_file.close()
-oldageind = np.array([129,133,136,138,141,144,149,152,156])
-oldspecdata = np.genfromtxt(SEDpath+"models/Padova1994/chabrier/bc2003_hr_stelib_m62_chab_ssp.ised_ASCII", skip_header = 6, skip_footer=12, usecols=np.arange(1, 6918), dtype="float") #oldspecdata[1, :] is for 0 Gyr
-
-oldwavspec = oldspecdata[0,:]
-
-oldoutput = np.zeros(len(objfilter)*500, dtype="float")
-oldoutput.shape = (len(objfilter), 500)
-
-
-new_SED_file = open(SEDpath+"P94_chab_zsun_const/P94_chab_zsun_const.ised_ASCII")
-newages = np.array(new_SED_file.readline().split(), dtype="float")[1:] #ages[0] = 0.
-new_SED_file.close()
-newageind = np.array([69, 89, 107])
-newspecdata = np.genfromtxt(SEDpath+"P94_chab_zsun_const/P94_chab_zsun_const.ised_ASCII", skip_header = 6, skip_footer=12, usecols=np.arange(1, 6918), dtype="float") #newspecdata[1, :] is for 0 Gyr
-newwavspec = newspecdata[0,:]
-
-newoutput = np.zeros(len(objfilter)*500, dtype="float")
-newoutput.shape = (len(objfilter), 500)
 
 normfilt = np.zeros(4*2, dtype="float")
 normfilt.shape = (4, 2)
 normfilt[:,0] = 4962.5 + np.arange(4)*25.0
 normfilt[:,1] = np.ones(4)
 
-oldagenorms = np.zeros(9*500, dtype="float")
-oldagenorms.shape = (9, 500)
+objfilter = np.ones(len(objwavs[98:-254])*2, dtype="float")
+objfilter.shape = (len(objwavs[98:-254]), 2)
+objfilter[:,0] = objwavs[98:-254]
 
-newagenorms = np.zeros(3*500, dtype="float")
-newagenorms.shape = (3, 500)
+output = np.zeros(len(objfilter)*500, dtype="float")
+output.shape = (len(objfilter), 500)
 
-for i in range(9):
-    print "old age: " + str(oldages[oldageind[i]])
-    for j in range(len(zarr)):
-        oldzspectrum = np.zeros(len(oldwavspec)*2, dtype="float")
-        oldzspectrum.shape = (len(oldwavspec), 2)
-        oldzspectrum[:,1] = oldspecdata[oldageind[i]+1,:]*3.826*10**33 #luminosity in erg/s/A
-        oldzspectrum[:,1] = oldzspectrum[:,1]/(4*np.pi*(cosmo.luminosity_distance(zarr[j])*3.086*10**24)**2) #convert to observed flux at given redshift in erg/s/A/cm^2        
-        oldzspectrum[:,1] = oldzspectrum[:,1]/(1+zarr[j]) #reduce flux by a factor of 1/(1+z) to account for redshifting
-        oldzspectrum[:,0] = oldwavspec
-        oldagenorms[i, j] = 25.*np.sum(rebin_to_filter(oldzspectrum, normfilt))
-        oldzspectrum[:,1] = oldzspectrum[:,1]/oldagenorms[i, j] #reduce flux by a factor of 1/(1+z) to account for redshifting
-        oldzspectrum[:,0] = oldzspectrum[:,0]*(1+zarr[j]) #change wavelength values to account for redshifting
-        oldoutput[:,j] = rebin_to_filter(oldzspectrum, objfilter)
-    
-    np.savetxt("models/spec/oldburst/age_" + str(oldages[oldageind[i]]) + ".txt", oldoutput)
-    np.savetxt("models/spec/oldburst/agenorms_" + str(oldages[oldageind[i]]) + ".txt", oldagenorms[i,:])
+agenorms = np.zeros(128*500, dtype="float")
+agenorms.shape = (128, 500)
 
+### Load up the spectral models to fit
 
-for i in range(3):
-    print "new age: " + str(newages[newageind[i]])
-    for j in range(len(zarr)):
-        newzspectrum = np.zeros(len(newwavspec)*2, dtype="float")
-        newzspectrum.shape = (len(newwavspec), 2)
-        newzspectrum[:,1] = newspecdata[newageind[i]+1,:]*3.826*10**33 #luminosity in erg/s/A
-        newzspectrum[:,1] = newzspectrum[:,1]/(4*np.pi*(cosmo.luminosity_distance(zarr[j])*3.086*10**24)**2) #convert to observed flux at given redshift in erg/s/A/cm^2
-        newzspectrum[:,1] = newzspectrum[:,1]/(1+zarr[j]) #reduce flux by a factor of 1/(1+z) to account for redshifting
-        newzspectrum[:,0] = newwavspec
-        newagenorms[i, j] = 25.*np.sum(rebin_to_filter(newzspectrum, normfilt))
-        newzspectrum[:,1] = newzspectrum[:,1]/newagenorms[i, j] #reduce flux by a factor of 1/(1+z) to account for redshifting
-        newzspectrum[:,0] = newzspectrum[:,0]*(1+zarr[j]) #change wavelength values to account for redshifting
-        newoutput[:,j] = rebin_to_filter(newzspectrum, objfilter)
-        """
-        pylab.figure()
-        pylab.plot(newzspectrum[:,0], newzspectrum[:,1], color="red")
-        #pylab.plot(newspecdata[0,:], newspecdata[newageind[0]+1,:], color="blue")
-        pylab.plot(objfilter[:,0], newoutput[:,j], color="black")
-        #pylab.ylim(-10**-10, 10**-10)
-        pylab.xlim(10, 10**4)
-        pylab.show()
-        """
-    
-    np.savetxt("models/spec/newconst/age_" + str(newages[newageind[i]]) + ".txt", newoutput)
-    np.savetxt("models/spec/newconst/agenorms_" + str(newages[newageind[i]]) + ".txt", newagenorms[i,:])
-    
+for t in range(tau, tau+1):
+    SED_file = open(SEDpath+"P94_Chab_zsun_t" + tauvals[t] + "Gyr_noabs/out.ised_ASCII")
+    ages = np.array(SED_file.readline().split(), dtype="float")[1:] #ages[0] = 0.
+    SED_file.close()
+    np.savetxt("ages.txt", ages[69:197])
+    specdata = np.genfromtxt(SEDpath+"P94_Chab_zsun_t" + tauvals[t] + "Gyr_noabs/out.ised_ASCII", skip_header = 6, skip_footer=12, usecols=np.arange(1, 6918), dtype="float") #specdata[1, :] is for 0 Gyr
+
+    for j in range(69, 197):
+        print "Calculating colours for age: " + str(ages[j]) + " and Tau: " + tauvals[t]
+        spectrum = np.array([specdata[0, :], specdata[j+1, :]]).T
+
+        synmags = np.zeros(13*500, dtype="float")
+        synmags.shape = (500, 13)
+        synmags[:,0] = np.arange(0.01, 5.01, 0.01)
+
+        for i in range(1, 501):
+            z = 0.01*i
+            if ages[j]*(10**-9) < 14.00 - cosmo.lookback_time(z).value:
+
+                zspectrum = np.copy(spectrum)
+                zspectrum[:,1] = zspectrum[:,1]*3.826*10**33 #luminosity in erg/s/A
+                zspectrum[:,1] = zspectrum[:,1]/(4*np.pi*(cosmo.luminosity_distance(z).value*3.086*10**24)**2) #convert to observed flux at given redshift in erg/s/A/cm^2
+                zspectrum[:,1] = zspectrum[:,1]/(1+z) #reduce flux by a factor of 1/(1+z) to account for redshifting
+                
+                agenorms[j, i-1] = 25.*np.sum(rebin_to_filter(zspectrum, normfilt))
+                zspectrum[:,1] = zspectrum[:,1]/agenorms[j,i-1] 
+                zspectrum[:,0] = zspectrum[:,0]*(1+z) #change wavelength values to account for redshifting
+
+                output[:,j] = rebin_to_filter(zspectrum, objfilter)
+            else:
+                output[:,j] = np.zeros(len(objfilter))
+
+        np.savetxt("models/spec/" + tauvals[t] + "/age_" + str(ages[j]) + ".txt", output)
+        np.savetxt("models/spec/" + tauvals[t] + "/agenorms_" + str(ages[j]) + ".txt", agenorms[j,:])
+
 
 

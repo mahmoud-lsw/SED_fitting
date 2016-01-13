@@ -55,9 +55,8 @@ for m in range(firstobj, lastobj+1):
             th_mag_array_new = np.expand_dims(np.loadtxt("../models/const/synmags_age_" + str(newages[l]) + ".txt", usecols=(1,2,3,4,5,6,7,8,9,10,11,12))[modelno, :], axis=0)
         th_flux_array_old_raw = 10**((23.9-th_mag_array_old)/2.5)
         th_flux_array_new_raw = 10**((23.9-th_mag_array_new)/2.5)
-        for i in range(foldmin, foldmax+1):
+        for i in range(51):
             f_old_V = f_old_array[i]
-            print "Initial burst age: " + str(ages[j]) + ", fitting to redshift " + str((arg+1)*0.01) + ", with new starburst of age " + str(newages[l]) + " and f_old_V " + str(f_old_V)
             if f_old_V == 1.:
                 th_flux_array_new = 0.*th_flux_array_new_raw
                 th_flux_array_old = np.copy(th_flux_array_old_raw)
@@ -74,5 +73,5 @@ for m in range(firstobj, lastobj+1):
                         flux_diffs[m-firstobj, :] = np.squeeze(obj_fluxes/(th_flux_array*const))
                         output[m-firstobj,:] = np.array([m+1, all_obj_specz[m], 0.01*(zmin+1), ages[j], newages[l], f_old_V, EBV, const, chivals])
                                    
-        np.savetxt("photoz_2comp_." + str(firstobj) + "_" + str(lastobj) + "txt", output, header="obj_no spec_z phot_z age_old age_new f_old_V EBV norm chi") 
+        np.savetxt("photoz_2comp_" + str(firstobj) + "_" + str(lastobj) + ".txt", output, header="obj_no spec_z phot_z age_old age_new f_old_V EBV norm chi") 
         np.savetxt("flux_fracoffsets_2comp_" + str(firstobj) + "_" + str(lastobj) + ".txt", flux_diffs)

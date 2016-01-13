@@ -3,16 +3,30 @@ import pylab
 import matplotlib as mpl
 
 #data = np.loadtxt("photoz/photoz_EBV1.5.txt")
-#data = np.loadtxt("photoz/photoz_allbandobj_v3.txt")
+#data = np.loadtxt("photoz/photoz_12bandobj.txt")
 #data = np.loadtxt("photoz/photoz_ratios_EBV2.5.txt")
 #data = np.loadtxt("photoz/photoz_medianratios_EBV0.5.txt")
-data = np.loadtxt("photoz/photoz_2comp_medratios_EBV1.5.txt")
+#data = np.loadtxt("photoz_2comp_UDS.txt")
+data = np.loadtxt("photoz/photoz_2comp_UDS_verification.txt")
 
 # obj_no spec_z phot_z age_old age_new f_old_V old_modifier EBV norm chi
 
 ### Find the number of data points, catastrophic outliers and sigma_dz, sigma_dz_NMAD and sigma_dz_clipped
 no = len(data)
+
+sdz = []
+
+for i in range(80):
+    datamod = data[:,1]*(1.4-i*0.01)
+    dz = (datamod - data[:,2])
+    sig_dz = np.std(dz)
+    print sig_dz
+    sdz.append(sig_dz)
+
+print np.argmin(np.array(sdz))
+
 cat = 0.
+data[:,1] = data[:,1]#*0.88
 dz = (data[:,1] - data[:,2])/(1+data[:,1])
 sig_dz = np.std(dz)
 MAD = np.median(np.abs(dz - np.median(dz)))
@@ -25,8 +39,8 @@ for i in range(len(data)):
     else:
         gooddata.append(i)
 
-data_nocat = np.zeros(len(gooddata)*10)
-data_nocat.shape = (len(gooddata), 10)
+data_nocat = np.zeros(len(gooddata)*11)
+data_nocat.shape = (len(gooddata), 11)
 
 for i in range(len(gooddata)):
     data_nocat[i, :] = data[gooddata[i], :]
@@ -42,26 +56,10 @@ print "sigma_dz_clipped: " + str(sigma_dz_clipped)
 
 
 ### Calculate star formation rates and stellar masses for the full sample and for the well fit sample
-SFR = np.copy(data[:,0])
-mass = np.copy(data[:,0])
-good_SFR = np.copy(data_nocat[:,0])
-good_mass = np.copy(data_nocat[:,0])
-
-for i in range(len(data)):
-    if data[i,5] == 1.:
-        SFR[i] = 0.00001 #actually zero but choose arbitrary small value to plot on log scale.
-        mass[i] = data[i,8]*data[i,6]
-    else:
-        SFR[i] = data[i,8]
-        mass[i] = data[i,8]*(data[i,6] + data[i,4])
-
-for j in range(len(data_nocat)):
-    if data_nocat[j,5] == 1.:
-        good_SFR[j] = 0.00001 #actually zero but choose arbitrary small value to plot on log scale.
-        good_mass[j] = data_nocat[j,8]*data_nocat[j,6]
-    else:
-        good_SFR[j] = data_nocat[j,8]
-        good_mass[j] = data_nocat[j,8]*(data_nocat[j,6] + data_nocat[j,4]) #4 is age new, 6 is old_modifier
+SFR = data[:,9]
+mass = data[:,10]
+good_SFR = data_nocat[:,9]
+good_mass = data_nocat[:,10]
 
 
 ### Various plotting codes
@@ -84,8 +82,8 @@ pylab.show()
 
 #Plots age of stellar population vs extinction EBV value
 pylab.figure()
-pylab.scatter(data[:, 3]*10**-9, data[:,7], color="red")
-pylab.scatter(data_nocat[:, 3]*10**-9, data_nocat[:,7], color="blue")
+pylab.scatter(data[:, 3]*10**-9, data[:,6], color="red")
+pylab.scatter(data_nocat[:, 3]*10**-9, data_nocat[:,6], color="blue")
 pylab.xlabel("Age of Stellar Pop. (Gyr)", size="16")
 pylab.xlim(5*10**-3, 15)
 pylab.xscale("log")
@@ -101,10 +99,9 @@ pylab.xlabel("Stellar Mass (Solar Masses)", size="16")
 pylab.yscale("log")
 pylab.xscale("log")
 pylab.ylabel("SFR (Solar Masses per year)", size="16")
-pylab.ylim(10**-6, 5*10**3)
+pylab.ylim(10**-5, 5*10**3)
+pylab.xlim(10**5, 5*10**12)
 pylab.show()
-
-
 
 
 

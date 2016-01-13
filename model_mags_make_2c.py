@@ -3,7 +3,7 @@
 
 import sys
 sys.path.append("/disk1/adamc/my_code")
-
+arg = int(sys.argv[1])
 SEDpath = "/disk1/adamc/progs/bc03/"
 
 import numpy as np
@@ -89,8 +89,8 @@ normfilt[:,0] = 4962.5 + np.arange(4)*25.0
 normfilt[:,1] = np.ones(4)
 
 
-newagenorms = np.zeros(3*501, dtype="float")
-newagenorms.shape = (501, 3)
+newagenorms = np.zeros(3*500, dtype="float")
+newagenorms.shape = (500, 3)
 
 newSED_file = open(SEDpath+"P94_chab_zsun_const/P94_chab_zsun_const.ised_ASCII")
 newages = np.array(newSED_file.readline().split(), dtype="float")[1:] #ages[0] = 0.
@@ -98,37 +98,9 @@ newSED_file.close()
 
 newspecdata = np.genfromtxt(SEDpath+"P94_chab_zsun_const/P94_chab_zsun_const.ised_ASCII", skip_header = 6, skip_footer=12, usecols=np.arange(1, 6918), dtype="float") #specdata[1, :] is for 0 Gyr
 newagevals = np.array([69, 89, 107])
-"""
-for j in range(3):
-    newspectrum = np.array([newspecdata[0, :], newspecdata[newagevals[j]+1, :]]).T
-    newsynmags = np.zeros(13*500, dtype="float")
-    newsynmags.shape = (500, 13)
-    newsynmags[:,0] = np.arange(0.01, 5.01, 0.01)
 
-    for i in range(1, 501):
-        z = 0.01*i
-        if newages[j]*(10**-9) < 14.00 - cosmo.lookback_time(z).value:
-            print "Calculating colours for age: " + str(newages[newagevals[j]]) + " and redshift: " + str(z) + ", total age: " + str(newages[newagevals[j]]*(10**-9) + cosmo.lookback_time(z).value )
-            newzspectrum = np.copy(newspectrum)
-            newzspectrum[:,1] = newzspectrum[:,1]*3.826*10**33 #luminosity in erg/s/A
-            newzspectrum[:,1] = newzspectrum[:,1]/(4*np.pi*(cosmo.luminosity_distance(z)*3.086*10**24)**2) #convert to observed flux at given redshift in erg/s/A/cm^2
-            newzspectrum[:,1] = newzspectrum[:,1]/(1+z) #reduce flux by a factor of 1/(1+z) to account for redshifting
-            newzspectrum[:,0] = newzspectrum[:,0]*(1+z) #change wavelength values to account for redshifting
-            newagenorms[i, j] = 25.*np.sum(rebin_to_filter(newzspectrum, normfilt))
-            newzspectrum[:,1] = newzspectrum[:,1]/newagenorms[i, j] #reduce flux by a factor of 1/(1+z) to account for redshifting
-            
-            newth_mags = s.AB_mags_Guo(newzspectrum) #np.ones(12)#
-            newsynmags[i-1, 1:] = newth_mags
-
-    np.savetxt("models/const/synmags_age_" + str(newages[newagevals[j]]) + ".txt", newsynmags)
-    np.savetxt("models/const/agenorms_" + str(newages[newagevals[j]]) + ".txt", newagenorms[i,:])
-"""
-
-
-
-oldagenorms = np.zeros(9*501, dtype="float")
-oldagenorms.shape = (501, 9)
-
+oldagenorms = np.zeros(9*500, dtype="float")
+oldagenorms.shape = (500, 9)
 
 oldSED_file = open(SEDpath+"models/Padova1994/chabrier/bc2003_hr_stelib_m62_chab_ssp.ised_ASCII")
 oldages = np.array(oldSED_file.readline().split(), dtype="float")[1:] #ages[0] = 0.
@@ -138,27 +110,55 @@ oldSED_file.close()
 oldspecdata = np.genfromtxt(SEDpath+"models/Padova1994/chabrier/bc2003_hr_stelib_m62_chab_ssp.ised_ASCII", skip_header = 6, skip_footer=12, usecols=np.arange(1, 6918), dtype="float") #specdata[1, :] is for 0 Gyr
 oldagevals = np.array([129,133,136,138,141,144,149,152,156])
 
-for j in range(9):
-    oldspectrum = np.array([oldspecdata[0, :], oldspecdata[oldagevals[j]+1, :]]).T
-    oldsynmags = np.zeros(13*500, dtype="float")
-    oldsynmags.shape = (500, 13)
-    oldsynmags[:,0] = np.arange(0.01, 5.01, 0.01)
+if arg < 3:
 
-    for i in range(1, 501):
-        z = 0.01*i
-        if oldages[oldagevals[j]]*(10**-9) < 14.00 - cosmo.lookback_time(z).value:
-            print "Calculating colours for age: " + str(oldages[oldagevals[j]]) + " and redshift: " + str(z) + ", total age: " + str(oldages[oldagevals[j]]*(10**-9) + cosmo.lookback_time(z).value)
-            oldzspectrum = np.copy(oldspectrum)
-            oldzspectrum[:,1] = oldzspectrum[:,1]*3.826*10**33 #luminosity in erg/s/A
-            oldzspectrum[:,1] = oldzspectrum[:,1]/(4*np.pi*(cosmo.luminosity_distance(z)*3.086*10**24)**2) #convert to observed flux at given redshift in erg/s/A/cm^2
-            oldzspectrum[:,1] = oldzspectrum[:,1]/(1+z) #reduce flux by a factor of 1/(1+z) to account for redshifting
-            oldagenorms[i, j] = 25.*np.sum(rebin_to_filter(oldzspectrum, normfilt))
-            oldzspectrum[:,1] = oldzspectrum[:,1]/oldagenorms[i, j]
-            oldzspectrum[:,0] = oldzspectrum[:,0]*(1+z) #change wavelength values to account for redshifting
+    for j in range(arg, arg+1):
+        newspectrum = np.array([newspecdata[0, :], newspecdata[newagevals[j]+1, :]]).T
+        newsynmags = np.zeros(13*500, dtype="float")
+        newsynmags.shape = (500, 13)
+        newsynmags[:,0] = np.arange(0.01, 5.01, 0.01)
 
-            oldth_mags = s.AB_mags_Guo(oldzspectrum)
-            oldsynmags[i-1, 1:] = oldth_mags
+        for i in range(1, 501):
+            z = 0.01*i
+            if newages[j]*(10**-9) < 14.00 - cosmo.lookback_time(z).value:
+                print "Calculating colours for age: " + str(newages[newagevals[j]]) + " and redshift: " + str(z) + ", total age: " + str(newages[newagevals[j]]*(10**-9) + cosmo.lookback_time(z).value )
+                newzspectrum = np.copy(newspectrum)
+                newzspectrum[:,1] = newzspectrum[:,1]*3.826*10**33 #luminosity in erg/s/A
+                newzspectrum[:,1] = newzspectrum[:,1]/(4*np.pi*(cosmo.luminosity_distance(z)*3.086*10**24)**2) #convert to observed flux at given redshift in erg/s/A/cm^2
+                newzspectrum[:,1] = newzspectrum[:,1]/(1+z) #reduce flux by a factor of 1/(1+z) to account for redshifting
+                newagenorms[i-1, j] = 25.*np.sum(rebin_to_filter(newzspectrum, normfilt))
+                newzspectrum[:,1] = newzspectrum[:,1]/newagenorms[i-1, j] 
+                newzspectrum[:,0] = newzspectrum[:,0]*(1+z) #change wavelength values to account for redshifting
+                newth_mags = s.AB_mags_Guo(newzspectrum)
+                newsynmags[i-1, 1:] = newth_mags
 
-    np.savetxt("models/burst/synmags_age_" + str(oldages[oldagevals[j]]) + ".txt", oldsynmags)
-    np.savetxt("models/burst/agenorms_" + str(oldages[oldagevals[j]]) + ".txt", oldagenorms[i,:])
+        np.savetxt("models/const/synmags_age_" + str(newages[newagevals[j]]) + ".txt", newsynmags)
+        np.savetxt("models/const/agenorms_" + str(newages[newagevals[j]]) + ".txt", newagenorms[:,j])
+
+else:
+
+
+    for j in range(arg-3, arg-2):
+        oldspectrum = np.array([oldspecdata[0, :], oldspecdata[oldagevals[j]+1, :]]).T
+        oldsynmags = np.zeros(13*500, dtype="float")
+        oldsynmags.shape = (500, 13)
+        oldsynmags[:,0] = np.arange(0.01, 5.01, 0.01)
+
+        for i in range(1, 501):
+            z = 0.01*i
+            if oldages[oldagevals[j]]*(10**-9) < 14.00 - cosmo.lookback_time(z).value:
+                print "Calculating colours for age: " + str(oldages[oldagevals[j]]) + " and redshift: " + str(z) + ", total age: " + str(oldages[oldagevals[j]]*(10**-9) + cosmo.lookback_time(z).value)
+                oldzspectrum = np.copy(oldspectrum)
+                oldzspectrum[:,1] = oldzspectrum[:,1]*3.826*10**33 #luminosity in erg/s/A
+                oldzspectrum[:,1] = oldzspectrum[:,1]/(4*np.pi*(cosmo.luminosity_distance(z)*3.086*10**24)**2) #convert to observed flux at given redshift in erg/s/A/cm^2
+                oldzspectrum[:,1] = oldzspectrum[:,1]/(1+z) #reduce flux by a factor of 1/(1+z) to account for redshifting
+                oldagenorms[i-1, j] = 25.*np.sum(rebin_to_filter(oldzspectrum, normfilt))
+                oldzspectrum[:,1] = oldzspectrum[:,1]/oldagenorms[i-1, j]
+                oldzspectrum[:,0] = oldzspectrum[:,0]*(1+z) #change wavelength values to account for redshifting
+
+                oldth_mags = s.AB_mags_Guo(oldzspectrum)
+                oldsynmags[i-1, 1:] = oldth_mags
+
+        np.savetxt("models/burst/synmags_age_" + str(oldages[oldagevals[j]]) + ".txt", oldsynmags)
+        np.savetxt("models/burst/agenorms_" + str(oldages[oldagevals[j]]) + ".txt", oldagenorms[:,j])
 

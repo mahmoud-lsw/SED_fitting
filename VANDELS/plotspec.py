@@ -14,7 +14,7 @@ def specbin(spec, binn):
         binned[i, 1] = np.mean(spec[binn*i:binn*i+binn, 1])
     return binned
 
-hdulist1 = fits.open("../../VANDELS_data/spectra/sc_206806_UDS_P1M1_MR_Q1_029_1.fits")
+hdulist1 = fits.open("../../VANDELS_data/spectra/sc_143584_UDS_P1M2_MR_Q4_036_1.fits") # sc_206806_UDS_P1M1_MR_Q1_029_1.fits
 print hdulist1.info()
 #sc_206024_UDS_P1M1_MR_Q1_018_3.fits
 
