@@ -8,8 +8,9 @@ SEDpath = "../progs/bc03/"
 
 import numpy as np
 from subprocess import call
-import synphot as s
+import synphot_UDS as s
 from astropy.cosmology import WMAP9 as cosmo
+import pylab
 
 
 
@@ -88,8 +89,8 @@ normfilt.shape = (4, 2)
 normfilt[:,0] = 4962.5 + np.arange(4)*25.0
 normfilt[:,1] = np.ones(4)
 
-newagenorms = np.zeros(3*500, dtype="float")
-newagenorms.shape = (500, 3)
+newagenorms = np.zeros(3*700, dtype="float")
+newagenorms.shape = (700, 3)
 
 newSED_file = open(SEDpath+"P94_chab_zsun_const/P94_chab_zsun_const.ised_ASCII")
 newages = np.array(newSED_file.readline().split(), dtype="float")[1:] #ages[0] = 0.
@@ -98,28 +99,44 @@ newSED_file.close()
 newspecdata = np.genfromtxt(SEDpath+"P94_chab_zsun_const/P94_chab_zsun_const.ised_ASCII", skip_header = 6, skip_footer=12, usecols=np.arange(1, 6918), dtype="float") #specdata[1, :] is for 0 Gyr
 newagevals = np.array([69, 89, 107])
 
-oldagenorms = np.zeros(9*500, dtype="float")
-oldagenorms.shape = (500, 9)
+oldagenorms = np.zeros(9*700, dtype="float")
+oldagenorms.shape = (700, 9)
 
 oldSED_file = open(SEDpath+"models/Padova1994/chabrier/bc2003_hr_stelib_m62_chab_ssp.ised_ASCII")
 oldages = np.array(oldSED_file.readline().split(), dtype="float")[1:] #ages[0] = 0.
 oldSED_file.close()
 #print ages[129], ages[133], ages[136], ages[138], ages[141], ages[144], ages[149], ages[152], ages[156]
 
+D = np.loadtxt("IGM_Da_Db.txt")
 
 if arg < 3:
 
     for j in range(arg, arg+1):
         newspectrum = np.array([newspecdata[0, :], newspecdata[newagevals[j]+1, :]]).T
-        newsynmags = np.zeros(13*500, dtype="float")
-        newsynmags.shape = (500, 13)
-        newsynmags[:,0] = np.arange(0.01, 5.01, 0.01)
+        newsynmags = np.zeros(13*700, dtype="float")
+        newsynmags.shape = (700, 13)
+        newsynmags[:,0] = np.arange(0.01, 7.01, 0.01)
 
-        for i in range(1, 501):
+        for i in range(1, 701):
             z = 0.01*i
             if newages[j]*(10**-9) < 14.00 - cosmo.lookback_time(z).value:
                 print "Calculating colours for age: " + str(newages[newagevals[j]]) + " and redshift: " + str(z) + ", total age: " + str(newages[newagevals[j]]*(10**-9) + cosmo.lookback_time(z).value )
                 newzspectrum = np.copy(newspectrum)
+                for k in range(len(newzspectrum)):
+                    if newzspectrum[k,0] < 912.:
+                        newzspectrum[k,1] = 0.
+                    elif newzspectrum[k,0] > 912. and newzspectrum[k,0] < 1026.:
+                        newzspectrum[k,1] = newzspectrum[k,1]*(1-D[i-1,1])*(1-D[i-1,0])
+                    elif newzspectrum[k,0] > 1026. and newzspectrum[k,0] < 1216.:
+                        newzspectrum[k,1] = newzspectrum[k,1]*(1-D[i-1,1])
+                        
+                """      
+                pylab.figure()
+                pylab.plot(newspectrum[:,0], newspectrum[:,1])
+                pylab.plot(newzspectrum[:,0], newzspectrum[:,1])
+                pylab.xlim(0, 3000)
+                pylab.show()
+                """
                 newzspectrum[:,1] = newzspectrum[:,1]*3.826*10**33 #luminosity in erg/s/A
                 newzspectrum[:,1] = newzspectrum[:,1]/(4*np.pi*(cosmo.luminosity_distance(z).value*3.086*10**24)**2) #convert to observed flux at given redshift in erg/s/A/cm^2
                 newzspectrum[:,1] = newzspectrum[:,1]/(1+z) #reduce flux by a factor of 1/(1+z) to account for redshifting
@@ -129,8 +146,8 @@ if arg < 3:
                 newth_mags = s.AB_mags_UDS(newzspectrum) #np.ones(12)#
                 newsynmags[i-1, 1:] = newth_mags
                 
-        np.savetxt("models/const/synmagsUDS_age_" + str(newages[newagevals[j]]) + ".txt", newsynmags)
-        np.savetxt("models/const/agenormsUDS_" + str(newages[newagevals[j]]) + ".txt", newagenorms[:,j])
+        np.savetxt("../models/const/synmagsUDS_age_" + str(newages[newagevals[j]]) + ".txt", newsynmags)
+        np.savetxt("../models/const/agenormsUDS_" + str(newages[newagevals[j]]) + ".txt", newagenorms[:,j])
 
 else:
 
@@ -139,15 +156,22 @@ else:
 
     for j in range(arg-3, arg-2):
         oldspectrum = np.array([oldspecdata[0, :], oldspecdata[oldagevals[j]+1, :]]).T
-        oldsynmags = np.zeros(13*500, dtype="float")
-        oldsynmags.shape = (500, 13)
-        oldsynmags[:,0] = np.arange(0.01, 5.01, 0.01)
+        oldsynmags = np.zeros(13*700, dtype="float")
+        oldsynmags.shape = (700, 13)
+        oldsynmags[:,0] = np.arange(0.01, 7.01, 0.01)
 
-        for i in range(1, 501):
+        for i in range(1, 701):
             z = 0.01*i
             if oldages[oldagevals[j]]*(10**-9) < 14.00 - cosmo.lookback_time(z).value:
                 print "Calculating colours for age: " + str(oldages[oldagevals[j]]) + " and redshift: " + str(z) + ", total age: " + str(oldages[oldagevals[j]]*(10**-9) + cosmo.lookback_time(z).value)
                 oldzspectrum = np.copy(oldspectrum)
+                for k in range(len(oldzspectrum)):
+                    if oldzspectrum[k,0] < 912.:
+                        oldzspectrum[k,1] = 0.
+                    elif oldzspectrum[k,0] > 912. and oldzspectrum[k,0] < 1026.:
+                        oldzspectrum[k,1] = oldzspectrum[k,1]*(1-D[i-1,1])*(1-D[i-1,0])
+                    elif oldzspectrum[k,0] > 1026. and oldzspectrum[k,0] < 1216.:
+                        oldzspectrum[k,1] = oldzspectrum[k,1]*(1-D[i-1,1])
                 oldzspectrum[:,1] = oldzspectrum[:,1]*3.826*10**33 #luminosity in erg/s/A
                 oldzspectrum[:,1] = oldzspectrum[:,1]/(4*np.pi*(cosmo.luminosity_distance(z).value*3.086*10**24)**2) #convert to observed flux at given redshift in erg/s/A/cm^2
                 oldzspectrum[:,1] = oldzspectrum[:,1]/(1+z) #reduce flux by a factor of 1/(1+z) to account for redshifting
@@ -157,6 +181,6 @@ else:
                 oldth_mags = s.AB_mags_UDS(oldzspectrum)                   
                 oldsynmags[i-1, 1:] = oldth_mags
 
-        np.savetxt("models/burst/synmagsUDS_age_" + str(oldages[oldagevals[j]]) + ".txt", oldsynmags)
-        np.savetxt("models/burst/agenormsUDS_" + str(oldages[oldagevals[j]]) + ".txt", oldagenorms[:,j])
+        np.savetxt("../models/burst/synmagsUDS_age_" + str(oldages[oldagevals[j]]) + ".txt", oldsynmags)
+        np.savetxt("../models/burst/agenormsUDS_" + str(oldages[oldagevals[j]]) + ".txt", oldagenorms[:,j])
 

@@ -56,13 +56,13 @@ output[:,8] = 9999999999.
 
 
 ### Perform model fitting using a 2D chi squared array over object and redshift with max age of stellar pop physically determined
-zarr = np.arange(0.01, 5.001, 0.01)
+zarr = np.arange(0.01, 7.001, 0.01)
 lbtarr = WMAP9.lookback_time(zarr).value
 f_old_array = 1.01 - np.logspace(-2, 0, 51)
 
 for j in range(9): #8 old ages to iterate over
     arg = 0
-    while ages[j]*(10**-9) < 14.0 - lbtarr[arg] and arg < 499:
+    while ages[j]*(10**-9) < 14.0 - lbtarr[arg] and arg < 699:
         arg = arg+1
     for l in range(3):
         th_mag_array_old = np.loadtxt("models/burst/synmagsUDS_age_" + str(ages[j]) + ".txt", usecols=(1,2,3,4,5,6,7,8,9,10,11,12))[:arg, :]

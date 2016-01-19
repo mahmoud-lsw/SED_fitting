@@ -6,8 +6,8 @@ import matplotlib as mpl
 #data = np.loadtxt("photoz/photoz_12bandobj.txt")
 #data = np.loadtxt("photoz/photoz_ratios_EBV2.5.txt")
 #data = np.loadtxt("photoz/photoz_medianratios_EBV0.5.txt")
-#data = np.loadtxt("photoz_2comp_UDS.txt")
-data = np.loadtxt("photoz/photoz_2comp_UDS_verification.txt")
+data = np.loadtxt("photoz_2comp_UDS.txt")
+#data = np.loadtxt("photoz/photoz_2comp_UDS_verification.txt")
 
 # obj_no spec_z phot_z age_old age_new f_old_V old_modifier EBV norm chi
 
@@ -20,7 +20,6 @@ for i in range(80):
     datamod = data[:,1]*(1.4-i*0.01)
     dz = (datamod - data[:,2])
     sig_dz = np.std(dz)
-    print sig_dz
     sdz.append(sig_dz)
 
 print np.argmin(np.array(sdz))
