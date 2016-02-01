@@ -9,15 +9,26 @@ import pylab
 all_obj_fluxes = np.expand_dims(np.loadtxt("../VANDELS_data/combined_spec.txt"), axis=2)
 all_obj_fluxerrs =  np.expand_dims(np.loadtxt("../VANDELS_data/combined_spec_errs.txt"), axis=2) #erg/s/A/cm^2
 
-objdata = np.loadtxt("photoz/photoz_V_101foldsteps_fiveoldages.txt") #../VANDELS_data/VANDELS_fitresults_v1.txt
-photz = np.loadtxt("../VANDELS_data/VANDELS_fitresults_v1.txt", dtype="str")
+objdata = np.loadtxt("photoz_V_2comp.txt") #../VANDELS_data/VANDELS_fitresults_v1.txt
+photz = np.loadtxt("../VANDELS_data/VANDELS_fitresults_v1.txt", dtype="str", usecols=())
 
-### Build coefficiobjdataent values to apply Calzetti et al. (2000) dust reddening law fit
+### Build coefficient values to apply Calzetti et al. (2000) dust reddening law fit
 
-wavs = np.loadtxt("../VANDELS_data/wavs.txt")*10**-4
+wavs1D = np.loadtxt("../VANDELS_data/wavs.txt")*10**-4
+zarr = np.arange(0.01, 7.01, 0.01)
+wavs = np.zeros(len(wavs1D)*700)
+wavs.shape = (len(wavs1D), 700)
+
+for i in range(700):
+    wavs[:,i] = wavs1D/(1+zarr[i])
+
 coef = np.copy(wavs)
-coef[:3] = ((0.013/(wavs[:3]**3)) - (0.232/(wavs[:3]**2)) + (1.766/wavs[:3]) - 0.743)
-coef[3:] = 1.217/wavs[3:] - 0.393
+for i in range(700):
+    for j in range(784):
+        if wavs[j,i] < 0.63:
+            coef[j, i] = ((0.013/(wavs[j,i]**3)) - (0.232/(wavs[j,i]**2)) + (1.766/wavs[j,i]) - 0.743)
+        else:
+            coef[j, i] = 1.217/wavs[j,i] - 0.393
 
 
 oldages = np.array([508800000.0, 1139100030.0, 1700000000.0, 2000000000.0, 4000000000.0]) #508800000.0, 806400000.0, 1139100030.0, 1434000000.0, 1700000000.0, 2000000000.0, 2500000000.0, 3000000000.0, 4000000000.0########
@@ -49,7 +60,6 @@ output = np.zeros(len(all_obj_fluxes)*9, dtype="float")
 output.shape = (len(all_obj_fluxes), 9)
 output[:,8] = 9999999999.
 
-zarr = np.arange(0.01, 5.001, 0.01)
 lbtarr = cosmo.lookback_time(zarr).value
 f_old_array = 1.01 - np.logspace(-2, 0, 51)
 
@@ -76,28 +86,29 @@ for m in range(len(param)):
     print "Reduced Chi-squared value: " + str(param[m, 7]/784.)
     """
 
-    th_flux_array_new_raw = np.loadtxt("models/spec/newconst/age_" + str(newages[newage]) + ".txt")[:,redshift_ind:redshift_ind+1]#[:,:arg+1]
-    th_flux_array_old_raw = np.loadtxt("models/spec/oldburst/age_" + str(oldages[oldage]) + ".txt")[:,redshift_ind:redshift_ind+1]#[:,:arg+1] #erg/s/A/cm^2
+    th_flux_array_new_raw = np.loadtxt("../models/spec/newconst/age_" + str(newages[newage]) + ".txt")[:,redshift_ind:redshift_ind+1]#[:,:arg+1]
+    th_flux_array_old_raw = np.loadtxt("../models/spec/oldburst/age_" + str(oldages[oldage]) + ".txt")[:,redshift_ind:redshift_ind+1]#[:,:arg+1] #erg/s/A/cm^2
 
     if f_old_V == 1.:
         th_flux_array_new = 0.*th_flux_array_new_raw
-        th_flux_array_old = th_flux_array_old_raw
-    else:    
+        th_flux_array_old = np.copy(th_flux_array_old_raw)
+    else:
         th_flux_array_new = np.copy(th_flux_array_new_raw)
         th_flux_array_old = (f_old_V/(1.-f_old_V))*th_flux_array_old_raw
-    th_flux_array = np.expand_dims((th_flux_array_old + th_flux_array_new)*np.expand_dims((10**((-EBV*coef)/2.5)).T, axis=2), axis=0)
-    th_flux_array_oldonly = np.expand_dims((th_flux_array_old)*np.expand_dims((10**((-EBV*coef)/2.5)).T, axis=2), axis=0)
 
+    th_flux_array = np.expand_dims((th_flux_array_old + th_flux_array_new)*(10**((-EBV*coef[:,redshift_ind:redshift_ind+1])/2.5)), axis=0) #microjanskys
+    
     pylab.figure()
-    pylab.plot(wavs*10**4, np.squeeze(all_obj_fluxes[m,:,0]), color="blue")
-    pylab.plot(wavs*10**4, np.squeeze(th_flux_array*const), color="red", zorder=10)
-    pylab.plot(wavs*10**4, np.squeeze(all_obj_fluxerrs[m,:,0]), color="green")
-    pylab.plot(wavs*10**4, np.zeros(len(wavs)), color="grey")
+    pylab.plot(wavs1D*10**4, np.squeeze(all_obj_fluxes[m,:,0]), color="blue")
+    pylab.plot(wavs1D*10**4, np.squeeze(th_flux_array*const), color="red", zorder=10)
+    pylab.plot(wavs1D*10**4, np.squeeze(all_obj_fluxerrs[m,:,0]), color="green")
+    pylab.plot(wavs1D*10**4, np.zeros(len(wavs1D)), color="grey")
     #pylab.plot(binspec[:,0], np.squeeze(th_flux_array_oldonly*const), color="green", zorder=10)
     pylab.ylim(1.1*np.min(all_obj_fluxes[m,:,0]), 1.3*np.max(all_obj_fluxes[m,:,0]))
     pylab.xlabel("Wavelength (A)", size=16)
     pylab.ylabel("F_lambda (erg/s/A/cm^2)", size=16)
     pylab.text(5100, 0.8*np.max(all_obj_fluxes[m,:,0]),  "ACC_spec_z: " + str(param[m, 1]) + "   VANDELS_phot_z: " + photz[m,4] + "\n" + "E(B-V): " + str(EBV) + "   f_old: " + str(round(f_old_V, 3)) + "\n" + "old age: " + str(oldages[oldage]) + "  new age: " + str(newages[newage]) + "\n" + "Stellar Mass: " + str(round(param[m, 9]*10**-9, 2)) + "*10^9" + "\n" + "SFR: " + str(round(param[m, 8], 3)) + "\n" + "Reduced Chi-squared value: " + str(round(param[m, 7]/784., 3)), fontsize="14")
+    #pylab.show()
     pylab.savefig("../VANDELS_data/plots/" + str(m+1) + ".png")
     pylab.close()
 

@@ -53,8 +53,8 @@ for m in range(firstobj, lastobj+1):
         while ages[j]*(10**-9) < 14.0 - lbtarr[arg] and arg < 499:
             arg = arg+1
         for l in range(3):
-            th_mag_array_old = np.expand_dims(np.loadtxt("../models/burst/synmagsUDS_age_" + str(ages[j]) + ".txt", usecols=(1,2,3,4,5,6,7,8,9,10,11,12))[modelno, :], axis=0)
-            th_mag_array_new = np.expand_dims(np.loadtxt("../models/const/synmagsUDS_age_" + str(newages[l]) + ".txt", usecols=(1,2,3,4,5,6,7,8,9,10,11,12))[modelno, :], axis=0)
+            th_mag_array_old = np.expand_dims(np.loadtxt("../../models/burst/synmagsUDS_age_" + str(ages[j]) + ".txt", usecols=(1,2,3,4,5,6,7,8,9,10,11,12))[modelno, :], axis=0)
+            th_mag_array_new = np.expand_dims(np.loadtxt("../../models/const/synmagsUDS_age_" + str(newages[l]) + ".txt", usecols=(1,2,3,4,5,6,7,8,9,10,11,12))[modelno, :], axis=0)
         th_flux_array_old_raw = 10**((23.9-th_mag_array_old)/2.5)
         th_flux_array_new_raw = 10**((23.9-th_mag_array_new)/2.5)
         for i in range(51):

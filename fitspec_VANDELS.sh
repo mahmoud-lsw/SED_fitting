@@ -1,9 +1,14 @@
 !#/bin/bash
 
-python fitspec_VANDELS.py 0 25 &
-python fitspec_VANDELS.py 26 50 &
-python fitspec_VANDELS.py 51 75 &
-python fitspec_VANDELS.py 76 100 &
+#python fitspec_VANDELS.py 0 25 &
+#python fitspec_VANDELS.py 26 50 &
+#python fitspec_VANDELS.py 51 75 &
+#python fitspec_VANDELS.py 76 100 &
+
+python fitspec_VANDELS.py 0 13 &
+python fitspec_VANDELS.py 14 25 &
+python fitspec_VANDELS.py 26 37 &
+python fitspec_VANDELS.py 38 50 &
 
 wait
 

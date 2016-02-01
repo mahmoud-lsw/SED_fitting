@@ -1,5 +1,5 @@
 import numpy as np
-"""
+
 file1 = np.loadtxt("photoz_V_0_13.txt")
 file2 = np.loadtxt("photoz_V_14_25.txt")
 file3 = np.loadtxt("photoz_V_26_37.txt")
@@ -10,7 +10,7 @@ file1 = np.loadtxt("photoz_V_0_25.txt")
 file2 = np.loadtxt("photoz_V_26_50.txt")
 file3 = np.loadtxt("photoz_V_51_75.txt")
 file4 = np.loadtxt("photoz_V_76_100.txt")
-
+"""
 output = np.zeros(10*len(file1))
 output.shape = (len(file1), 10)
 
@@ -29,8 +29,8 @@ for m in range(len(file1)):
         print "well shit..."
     
     #output = np.loadtxt("photoz_V_obj1_full.txt")
-    old_norm = np.loadtxt("models/spec/oldburst/agenorms_" + str(output[m,2]) + ".txt")[int(output[m,1]/0.01) - 1]
-    new_norm = np.loadtxt("models/spec/newconst/agenorms_" + str(output[m,3]) + ".txt")[int(output[m,1]/0.01) - 1]
+    old_norm = np.loadtxt("../models/spec/oldburst/agenorms_" + str(output[m,2]) + ".txt")[int(output[m,1]/0.01) - 1]
+    new_norm = np.loadtxt("../models/spec/newconst/agenorms_" + str(output[m,3]) + ".txt")[int(output[m,1]/0.01) - 1]
     
     if output[m,4] == 1.:
         output[m,8] = 0.

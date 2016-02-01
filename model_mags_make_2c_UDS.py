@@ -128,7 +128,7 @@ if arg < 3:
                     elif newzspectrum[k,0] > 912. and newzspectrum[k,0] < 1026.:
                         newzspectrum[k,1] = newzspectrum[k,1]*(1-D[i-1,1])*(1-D[i-1,0])
                     elif newzspectrum[k,0] > 1026. and newzspectrum[k,0] < 1216.:
-                        newzspectrum[k,1] = newzspectrum[k,1]*(1-D[i-1,1])
+                        newzspectrum[k,1] = newzspectrum[k,1]*(1-D[i-1,0])
                         
                 """      
                 pylab.figure()
@@ -146,7 +146,7 @@ if arg < 3:
                 newth_mags = s.AB_mags_UDS(newzspectrum) #np.ones(12)#
                 newsynmags[i-1, 1:] = newth_mags
                 
-        np.savetxt("../models/const/synmagsUDS_age_" + str(newages[newagevals[j]]) + ".txt", newsynmags)
+        np.savetxt("../models/const/synmagsUDS_age_" + str(newages[newagevals[j]]) + ".txt", newsynfluxes)
         np.savetxt("../models/const/agenormsUDS_" + str(newages[newagevals[j]]) + ".txt", newagenorms[:,j])
 
 else:
@@ -169,9 +169,9 @@ else:
                     if oldzspectrum[k,0] < 912.:
                         oldzspectrum[k,1] = 0.
                     elif oldzspectrum[k,0] > 912. and oldzspectrum[k,0] < 1026.:
-                        oldzspectrum[k,1] = oldzspectrum[k,1]*(1-D[i-1,1])*(1-D[i-1,0])
+                        oldzspectrum[k,1] = oldzspectrum[k,1]*(1-D[int(z/0.01 - 1),1])*(1-D[int(z/0.01 - 1),0])
                     elif oldzspectrum[k,0] > 1026. and oldzspectrum[k,0] < 1216.:
-                        oldzspectrum[k,1] = oldzspectrum[k,1]*(1-D[i-1,1])
+                        oldzspectrum[k,1] = oldzspectrum[k,1]*(1-D[int(z/0.01 - 1),0])
                 oldzspectrum[:,1] = oldzspectrum[:,1]*3.826*10**33 #luminosity in erg/s/A
                 oldzspectrum[:,1] = oldzspectrum[:,1]/(4*np.pi*(cosmo.luminosity_distance(z).value*3.086*10**24)**2) #convert to observed flux at given redshift in erg/s/A/cm^2
                 oldzspectrum[:,1] = oldzspectrum[:,1]/(1+z) #reduce flux by a factor of 1/(1+z) to account for redshifting
@@ -181,6 +181,6 @@ else:
                 oldth_mags = s.AB_mags_UDS(oldzspectrum)                   
                 oldsynmags[i-1, 1:] = oldth_mags
 
-        np.savetxt("../models/burst/synmagsUDS_age_" + str(oldages[oldagevals[j]]) + ".txt", oldsynmags)
+        np.savetxt("../models/burst/synmagsUDS_age_" + str(oldages[oldagevals[j]]) + ".txt", oldsynfluxes)
         np.savetxt("../models/burst/agenormsUDS_" + str(oldages[oldagevals[j]]) + ".txt", oldagenorms[:,j])
 

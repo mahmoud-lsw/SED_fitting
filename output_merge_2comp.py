@@ -1,6 +1,6 @@
 import numpy as np
 
-file1 = np.loadtxt("photoz_UDS_0_13.txt")
+file1 = np.loadtxt("photoz_UDS_0_13.txt") #_UDS
 file2 = np.loadtxt("photoz_UDS_14_25.txt")
 file3 = np.loadtxt("photoz_UDS_26_37.txt")
 file4 = np.loadtxt("photoz_UDS_38_50.txt")
@@ -20,8 +20,9 @@ for m in range(len(file1)):
         output[m,:9] = file4[m,:]
     else:
         print "well shit..."
-    old_norm = np.loadtxt("models/burst/agenormsUDS_" + str(output[m, 3]) + ".txt")[int(output[m, 2]/0.01) - 1]
-    new_norm = np.loadtxt("models/const/agenormsUDS_" + str(output[m, 4]) + ".txt")[int(output[m, 2]/0.01) - 1]
+        
+    old_norm = np.loadtxt("../models/burst/agenormsUDS_" + str(output[m, 3]) + ".txt")[int(output[m, 2]/0.01) - 1] ####UDS
+    new_norm = np.loadtxt("../models/const/agenormsUDS_" + str(output[m, 4]) + ".txt")[int(output[m, 2]/0.01) - 1]
     if output[m, 5] == 1.:
         output[m, 9] = 0.
         output[m, 10] = output[m, 6]/old_norm
@@ -30,7 +31,7 @@ for m in range(len(file1)):
         output[m, 10] = output[m, 7]*((output[m, 5]/(1.-output[m, 5]))/old_norm + output[m, 4]/new_norm)  #4 is age new, 6 is old_modifier
         
 
-np.savetxt("photoz_2comp_UDS.txt", output, header="obj_no spec_z phot_z age_old age_new f_old_V EBV norm chi SFR stellar_mass")
+np.savetxt("photoz_2comp_UDS.txt", output, header="obj_no spec_z phot_z age_old age_new f_old_V EBV norm chi SFR stellar_mass") #_UDS
 
 
 ##"obj_no spec_z phot_z age_old age_new f_old_V EBV norm chi"

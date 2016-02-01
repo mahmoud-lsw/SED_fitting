@@ -20,4 +20,5 @@ for m in range(len(file1)):
     else:
         print "well shit..."
 
+
 np.savetxt("photoz_2comp_zpt_UDS.txt", output, header="obj_no spec_z phot_z age_old age_new f_old_V old_modifier EBV norm chi")

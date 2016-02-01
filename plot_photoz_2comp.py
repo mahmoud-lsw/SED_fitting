@@ -4,28 +4,31 @@ import matplotlib as mpl
 
 #data = np.loadtxt("photoz/photoz_EBV1.5.txt")
 #data = np.loadtxt("photoz/photoz_12bandobj.txt")
-#data = np.loadtxt("photoz/photoz_ratios_EBV2.5.txt")
+#data = np.loadtxt("photoz/photoz_ratios_EBV2.5.txt", usecols=(0,1,2,3,4,5,6,7,1,2,3))
 #data = np.loadtxt("photoz/photoz_medianratios_EBV0.5.txt")
-data = np.loadtxt("photoz_2comp_UDS.txt")
-#data = np.loadtxt("photoz/photoz_2comp_UDS_verification.txt")
+#data = np.loadtxt("photoz_2comp.txt")
+data = np.loadtxt("photoz/photoz_2comp_UDS.txt")
+#data = np.loadtxt("photoz_UDS_0_0.txt", usecols=(0,1,2,3,4,5,6,7,8,0,1))
 
 # obj_no spec_z phot_z age_old age_new f_old_V old_modifier EBV norm chi
 
 ### Find the number of data points, catastrophic outliers and sigma_dz, sigma_dz_NMAD and sigma_dz_clipped
 no = len(data)
-
+"""
 sdz = []
 
 for i in range(80):
-    datamod = data[:,1]*(1.4-i*0.01)
-    dz = (datamod - data[:,2])
-    sig_dz = np.std(dz)
+    datamod = data[:,2]*(0.6 + i*0.01)
+    dz = (datamod - data[:,1])
+    sig_dz = np.mean(dz)
+    print np.abs(sig_dz), (0.6 + i*0.01)
     sdz.append(sig_dz)
 
-print np.argmin(np.array(sdz))
+argm = np.argmin(np.abs(np.array(sdz)))
 
+data[:,2] = data[:,2]*(0.6 + 45*0.01)
+"""
 cat = 0.
-data[:,1] = data[:,1]#*0.88
 dz = (data[:,1] - data[:,2])/(1+data[:,1])
 sig_dz = np.std(dz)
 MAD = np.median(np.abs(dz - np.median(dz)))
@@ -60,13 +63,15 @@ mass = data[:,10]
 good_SFR = data_nocat[:,9]
 good_mass = data_nocat[:,10]
 
-
 ### Various plotting codes
+
+# obj_no spec_z phot_z age_old age_new f_old_V EBV norm chi SFR stellar_mass
 
 #Plots spec_z vs phot_z with a colorbar of stellar pop age
 maxxy = np.max([np.max(data[:,1]), np.max(data[:,2])]) + 0.05
+print maxxy
 pylab.figure()
-pylab.scatter(data[:,1], data[:,2], c = data[:,3], norm=mpl.colors.LogNorm())
+pylab.scatter(data[:,1], data[:,2], c = data[:,5])#, norm=mpl.colors.LogNorm()) #3
 pylab.plot([0., maxxy], [0., maxxy], color="black", lw=2)
 pylab.plot([0., maxxy], [0. - 0.15, 0.85*maxxy -0.15], color="grey")
 pylab.plot([0., maxxy], [0. + 0.15, 1.15*maxxy + 0.15], color="grey")
@@ -78,7 +83,7 @@ cbar = pylab.colorbar()
 cbar.set_label("Age of Stellar Pop. (yrs)", size=16)
 pylab.show()
 
-
+"""
 #Plots age of stellar population vs extinction EBV value
 pylab.figure()
 pylab.scatter(data[:, 3]*10**-9, data[:,6], color="red")
@@ -103,7 +108,7 @@ pylab.xlim(10**5, 5*10**12)
 pylab.show()
 
 
-
+"""
 #The following code investigates the effects of changing the range of allowed reddening values.
 """
 highred = []

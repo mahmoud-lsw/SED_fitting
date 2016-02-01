@@ -4,6 +4,7 @@ from astropy.cosmology import WMAP9 as cosmo
 import pylab
 import sys
 SEDpath = "/disk1/adamc/progs/bc03/"
+arg = int(sys.argv[1])
 sys.path.append("../my_code")
 import synphot as s
 
@@ -99,9 +100,9 @@ def band_flux_dev(spec, filter):
     flux_total = np.sum(np.sum(crossover*np.expand_dims(filter[:,1], axis=1)*np.expand_dims(spec[:,1], axis=0)*np.expand_dims(filter_widths, axis=1), axis=1), axis=0)
     return flux_total
     
-zarr = np.arange(0.01, 5.001, 0.01)
+zarr = np.arange(0.01, 7.001, 0.01)
 lbtarr = cosmo.lookback_time(zarr).value
-
+D = np.loadtxt("IGM_Da_Db.txt")
 
 ### Load up the data necessary to build the "filter" to rebin the model spectra onto
 
@@ -129,8 +130,8 @@ oldspecdata = np.genfromtxt(SEDpath+"models/Padova1994/chabrier/bc2003_hr_stelib
 
 oldwavspec = oldspecdata[0,:]
 
-oldoutput = np.zeros(len(objfilter)*500, dtype="float")
-oldoutput.shape = (len(objfilter), 500)
+oldoutput = np.zeros(len(objfilter)*700, dtype="float")
+oldoutput.shape = (len(objfilter), 700)
 
 
 new_SED_file = open(SEDpath+"P94_chab_zsun_const/P94_chab_zsun_const.ised_ASCII")
@@ -140,66 +141,81 @@ newageind = np.array([69, 89, 107])
 newspecdata = np.genfromtxt(SEDpath+"P94_chab_zsun_const/P94_chab_zsun_const.ised_ASCII", skip_header = 6, skip_footer=12, usecols=np.arange(1, 6918), dtype="float") #newspecdata[1, :] is for 0 Gyr
 newwavspec = newspecdata[0,:]
 
-newoutput = np.zeros(len(objfilter)*500, dtype="float")
-newoutput.shape = (len(objfilter), 500)
+newoutput = np.zeros(len(objfilter)*700, dtype="float")
+newoutput.shape = (len(objfilter), 700)
 
 normfilt = np.zeros(4*2, dtype="float")
 normfilt.shape = (4, 2)
 normfilt[:,0] = 4962.5 + np.arange(4)*25.0
 normfilt[:,1] = np.ones(4)
 
-oldagenorms = np.zeros(9*500, dtype="float")
-oldagenorms.shape = (9, 500)
+oldagenorms = np.zeros(9*700, dtype="float")
+oldagenorms.shape = (9, 700)
 
-newagenorms = np.zeros(3*500, dtype="float")
-newagenorms.shape = (3, 500)
+newagenorms = np.zeros(3*700, dtype="float")
+newagenorms.shape = (3, 700)
 
+if arg < 3:
 
-for i in range(9):
-    print "old age: " + str(oldages[oldageind[i]])
-    for j in range(len(zarr)):
-        oldzspectrum = np.zeros(len(oldwavspec)*2, dtype="float")
-        oldzspectrum.shape = (len(oldwavspec), 2)
-        oldzspectrum[:,1] = oldspecdata[oldageind[i]+1,:]*3.826*10**33 #luminosity in erg/s/A
-        oldzspectrum[:,1] = oldzspectrum[:,1]/(4*np.pi*(cosmo.luminosity_distance(zarr[j])*3.086*10**24)**2) #convert to observed flux at given redshift in erg/s/A/cm^2        
-        oldzspectrum[:,1] = oldzspectrum[:,1]/(1+zarr[j]) #reduce flux by a factor of 1/(1+z) to account for redshifting
-        oldzspectrum[:,0] = oldwavspec
-        oldagenorms[i, j] = 25.*np.sum(rebin_to_filter(oldzspectrum, normfilt))
-        print oldagenorms[i,j]
-        oldzspectrum[:,1] = oldzspectrum[:,1]/oldagenorms[i, j] #reduce flux by a factor of 1/(1+z) to account for redshifting
-        oldzspectrum[:,0] = oldzspectrum[:,0]*(1+zarr[j]) #change wavelength values to account for redshifting
-        oldoutput[:,j] = rebin_to_filter(oldzspectrum, objfilter)
-    
-    np.savetxt("models/spec/oldburst/age_" + str(oldages[oldageind[i]]) + ".txt", oldoutput)
-    np.savetxt("models/spec/oldburst/agenorms_" + str(oldages[oldageind[i]]) + ".txt", oldagenorms[i,:])
+    for i in range(arg, arg+1):
+        for j in range(len(zarr)):
+            print "new age: " + str(newages[newageind[i]]) + ", redshift: " + str(zarr[j])
+            newzspectrum = np.zeros(len(newwavspec)*2, dtype="float")
+            newzspectrum.shape = (len(newwavspec), 2)
+            newzspectrum[:,0] = newwavspec
+            newzspectrum[:,1] = newspecdata[newageind[i]+1,:]*3.826*10**33 #luminosity in erg/s/A
+            for k in range(len(newzspectrum)):
+                if newzspectrum[k,0] < 912.:
+                    newzspectrum[k,1] = 0.
+                elif newzspectrum[k,0] > 912. and newzspectrum[k,0] < 1026.:
+                    newzspectrum[k,1] = newzspectrum[k,1]*(1-D[j,1])*(1-D[j,0])
+                elif newzspectrum[k,0] > 1026. and newzspectrum[k,0] < 1216.:
+                    newzspectrum[k,1] = newzspectrum[k,1]*(1-D[j,0])
+            newzspectrum[:,1] = newzspectrum[:,1]/(4*np.pi*(cosmo.luminosity_distance(zarr[j])*3.086*10**24)**2) #convert to observed flux at given redshift in erg/s/A/cm^2
+            newzspectrum[:,1] = newzspectrum[:,1]/(1+zarr[j]) #reduce flux by a factor of 1/(1+z) to account for redshifting
+            newagenorms[i, j] = 25.*np.sum(rebin_to_filter(newzspectrum, normfilt))
+            newzspectrum[:,1] = newzspectrum[:,1]/newagenorms[i, j] #reduce flux by a factor of 1/(1+z) to account for redshifting
+            newzspectrum[:,0] = newzspectrum[:,0]*(1+zarr[j]) #change wavelength values to account for redshifting
+            newoutput[:,j] = rebin_to_filter(newzspectrum, objfilter)
 
+            """
+            pylab.figure()
+            pylab.plot(newzspectrum[:,0], newzspectrum[:,1], color="red")
+            #pylab.plot(newspecdata[0,:], newspecdata[newageind[0]+1,:], color="blue")
+            pylab.plot(objfilter[:,0], newoutput[:,j], color="black")
+            #pylab.ylim(-10**-10, 10**-10)
+            pylab.xlim(10, 10**4)
+            pylab.show()
+            """
+        
+        np.savetxt("../models/spec/newconst/age_" + str(newages[newageind[i]]) + ".txt", newoutput)
+        np.savetxt("../models/spec/newconst/agenorms_" + str(newages[newageind[i]]) + ".txt", newagenorms[i,:])
+         
+else:
+       
+    for i in range(arg-3, arg-2):
+        for j in range(len(zarr)):
+            print "old age: " + str(oldages[oldageind[i]]) + ", redshift: " + str(zarr[j])
+            oldzspectrum = np.zeros(len(oldwavspec)*2, dtype="float")
+            oldzspectrum.shape = (len(oldwavspec), 2)
+            oldzspectrum[:,0] = oldwavspec
+            oldzspectrum[:,1] = oldspecdata[oldageind[i]+1,:]*3.826*10**33 #luminosity in erg/s/A
+            for k in range(len(oldzspectrum)):
+                if oldzspectrum[k,0] < 912.:
+                    oldzspectrum[k,1] = 0.
+                elif oldzspectrum[k,0] > 912. and oldzspectrum[k,0] < 1026.:
+                    oldzspectrum[k,1] = oldzspectrum[k,1]*(1-D[j,1])*(1-D[j,0])
+                elif oldzspectrum[k,0] > 1026. and oldzspectrum[k,0] < 1216.:
+                    oldzspectrum[k,1] = oldzspectrum[k,1]*(1-D[j,0])
 
-for i in range(3):
-    print "new age: " + str(newages[newageind[i]])
-    for j in range(len(zarr)):
-        newzspectrum = np.zeros(len(newwavspec)*2, dtype="float")
-        newzspectrum.shape = (len(newwavspec), 2)
-        newzspectrum[:,0] = newwavspec
-        newzspectrum[:,1] = newspecdata[newageind[i]+1,:]*3.826*10**33 #luminosity in erg/s/A
-        newzspectrum[:,1] = newzspectrum[:,1]/(4*np.pi*(cosmo.luminosity_distance(zarr[j])*3.086*10**24)**2) #convert to observed flux at given redshift in erg/s/A/cm^2
-        newzspectrum[:,1] = newzspectrum[:,1]/(1+zarr[j]) #reduce flux by a factor of 1/(1+z) to account for redshifting
-        newagenorms[i, j] = 25.*np.sum(rebin_to_filter(newzspectrum, normfilt))
-        newzspectrum[:,1] = newzspectrum[:,1]/newagenorms[i, j] #reduce flux by a factor of 1/(1+z) to account for redshifting
-        newzspectrum[:,0] = newzspectrum[:,0]*(1+zarr[j]) #change wavelength values to account for redshifting
-        newoutput[:,j] = rebin_to_filter(newzspectrum, objfilter)
+            oldzspectrum[:,1] = oldzspectrum[:,1]/(4.*np.pi*(cosmo.luminosity_distance(zarr[j])*3.086*10**24)**2) #convert to observed flux at given redshift in erg/s/A/cm^2        
+            oldzspectrum[:,1] = oldzspectrum[:,1]/(1.+zarr[j]) #reduce flux by a factor of 1/(1+z) to account for redshifting
+            oldagenorms[i, j] = 25.*np.sum(rebin_to_filter(oldzspectrum, normfilt))
+            oldzspectrum[:,1] = oldzspectrum[:,1]/oldagenorms[i, j] #reduce flux by a factor of 1/(1+z) to account for redshifting
+            oldzspectrum[:,0] = oldzspectrum[:,0]*(1+zarr[j]) #change wavelength values to account for redshifting
+            oldoutput[:,j] = rebin_to_filter(oldzspectrum, objfilter)
 
-        """
-        pylab.figure()
-        pylab.plot(newzspectrum[:,0], newzspectrum[:,1], color="red")
-        #pylab.plot(newspecdata[0,:], newspecdata[newageind[0]+1,:], color="blue")
-        pylab.plot(objfilter[:,0], newoutput[:,j], color="black")
-        #pylab.ylim(-10**-10, 10**-10)
-        pylab.xlim(10, 10**4)
-        pylab.show()
-        """
-    
-    np.savetxt("models/spec/newconst/age_" + str(newages[newageind[i]]) + ".txt", newoutput)
-    np.savetxt("models/spec/newconst/agenorms_" + str(newages[newageind[i]]) + ".txt", newagenorms[i,:])
-    
+        np.savetxt("../models/spec/oldburst/age_" + str(oldages[oldageind[i]]) + ".txt", oldoutput)
+        np.savetxt("../models/spec/oldburst/agenorms_" + str(oldages[oldageind[i]]) + ".txt", oldagenorms[i,:])
 
 
