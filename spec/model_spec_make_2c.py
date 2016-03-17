@@ -112,6 +112,7 @@ dwav = hdulist1[0].header["CDELT1"]
 fluxes1 = hdulist1[4].data
 
 maxwav = wavzpt + dwav*(len(fluxes1))
+
 objwavs_nobin = np.arange(wavzpt, maxwav, dwav)
 
 objwavs = specbin(objwavs_nobin, 2)
@@ -119,6 +120,8 @@ objwavs = specbin(objwavs_nobin, 2)
 objfilter = np.ones(len(objwavs[98:-254])*2, dtype="float")
 objfilter.shape = (len(objwavs[98:-254]), 2)
 objfilter[:,0] = objwavs[98:-254]
+print objfilter, wavzpt, dwav
+raw_input()
 
 ### Load up the spectral models to fit
 

@@ -10,8 +10,8 @@ foldmax = int(sys.argv[2])
 
 ### Load up the galaxy catalogue and list of stellar population ages to be fit
 
-all_obj_fluxes = np.expand_dims(np.loadtxt("../VANDELS_data/combined_spec.txt"), axis=2)#[20:22,:,:]
-all_obj_fluxerrs =  np.expand_dims(np.loadtxt("../VANDELS_data/combined_spec_errs.txt"), axis=2)#[20:22,:,:] #erg/s/A/cm^2
+all_obj_fluxes = np.expand_dims(np.loadtxt("../../VANDELS_data/combinedspec-0008.txt"), axis=2)#[20:22,:,:]
+all_obj_fluxerrs =  np.expand_dims(np.loadtxt("../../VANDELS_data/combinederrspec-0008.txt"), axis=2)#[20:22,:,:] #erg/s/A/cm^2
 
 for i in range(len(all_obj_fluxes[:,0,0])):
     for j in range(len(all_obj_fluxes[0,:,0])):
@@ -59,22 +59,23 @@ output[:,7] = 9999999999.
 
 ### output = np.loadtxt("photoz_V_" + str(foldmin) + "_" + str(foldmax) + ".txt") ###########################################################################
 
+zarr = np.arange(0.01, 7.01, 0.01)
 lbtarr = cosmo.lookback_time(zarr).value
 
 ### Perform model fitting using a 2D chi squared array over object and redshift with max age of stellar pop phy sically determined
 
-for j in range(9): ###9
+for j in range(8):
     arg = 0
     while oldages[j]*(10**-9) < 14.0 - lbtarr[arg] and arg < 699:
         arg = arg+1
     for k in range(41):
         EBV = 0.025*k
         print "Initial burst age: " + str(oldages[j]) + ", EBV: " + str(EBV)
-        for l in range(3):
-            th_flux_array_new_raw = np.loadtxt("../../models/spec/newconst/age_" + str(newages[l]) + "_EBV_" + str(EBV) + ".txt")[:,:arg+1]
-            th_flux_array_old_raw = np.loadtxt("../../models/spec/oldburst/age_" + str(oldages[j]) + "_EBV_" + str(EBV) + ".txt")[:,:arg+1] #erg/s/A/cm^2
+        for l in range(8):
+            th_flux_array_new_raw = np.loadtxt("../../models/spec/const/age_" + str(newages[l]) + "_EBV_" + str(EBV) + ".txt")[:,:arg+1]
+            th_flux_array_old_raw = np.loadtxt("../../models/spec/burst/age_" + str(oldages[j]) + "_EBV_" + str(EBV) + ".txt")[:,:arg+1] #erg/s/A/cm^2
             for i in range(foldmin, foldmax+1):
-                f_old_V = f_old_array[i]
+                f_old_V = 0.02*i
                 if f_old_V == 1.:
                     th_flux_array_new = 0.*th_flux_array_new_raw
                     th_flux_array_old = np.copy(th_flux_array_old_raw)

@@ -7,7 +7,7 @@ import matplotlib as mpl
 #data = np.loadtxt("photoz/photoz_ratios_EBV2.5.txt", usecols=(0,1,2,3,4,5,6,7,1,2,3))
 #data = np.loadtxt("photoz/photoz_medianratios_EBV0.5.txt")
 #data = np.loadtxt("photoz_2comp.txt")
-data = np.loadtxt("photoz_2comp_UDS.txt")
+data = np.loadtxt("photoz_UDS_0_1.txt")
 #data = np.loadtxt("photoz_UDS_0_0.txt", usecols=(0,1,2,3,4,5,6,7,8,0,1))
 
 # obj_no spec_z phot_z age_old age_new f_old_V old_modifier EBV norm chi
@@ -41,8 +41,8 @@ for i in range(len(data)):
     else:
         gooddata.append(i)
 
-data_nocat = np.zeros(len(gooddata)*11)
-data_nocat.shape = (len(gooddata), 11)
+data_nocat = np.zeros(len(gooddata)*9) ####11
+data_nocat.shape = (len(gooddata), 9)####11
 
 for i in range(len(gooddata)):
     data_nocat[i, :] = data[gooddata[i], :]
@@ -56,13 +56,13 @@ print "sigma_dz: " + str(sig_dz)
 print "sigma_dz_NMAD: " + str(MAD*1.483)
 print "sigma_dz_clipped: " + str(sigma_dz_clipped)
 
-
+"""
 ### Calculate star formation rates and stellar masses for the full sample and for the well fit sample
 SFR = data[:,9]
 mass = data[:,10]
 good_SFR = data_nocat[:,9]
 good_mass = data_nocat[:,10]
-
+"""
 ### Various plotting codes
 
 # obj_no spec_z phot_z age_old age_new f_old_V EBV norm chi SFR stellar_mass

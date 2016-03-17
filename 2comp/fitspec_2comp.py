@@ -49,7 +49,7 @@ lbtarr = cosmo.lookback_time(zarr).value
 f_old_array = np.arange(0., 1.001, 0.02)#1.01 - np.logspace(-2, 0, 51)
 
 
-for j in range(3):
+for j in range(1):
     arg = 0
     while ages[j]*(10**-9) < 14.0 - lbtarr[arg] and arg < 699:
         arg = arg+1

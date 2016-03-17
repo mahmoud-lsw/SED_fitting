@@ -109,6 +109,9 @@ hdulist1 = fits.open("../VANDELS_data/spectra/sc_206806_UDS_P1M1_MR_Q1_029_1.fit
 wavzpt = hdulist1[0].header["CRVAL1"]
 dwav = hdulist1[0].header["CDELT1"]
 fluxes1 = hdulist1[4].data#*10**19
+print wavzpt
+print dwav
+raw_input()
 
 maxwav = wavzpt + dwav*(len(fluxes1))
 objwavs_nobin = np.arange(wavzpt, maxwav, dwav)

@@ -6,33 +6,19 @@ import pylab
 
 ### Load up the galaxy catalogue and list of stellar population ages to be fit
 
-all_obj_fluxes = np.expand_dims(np.loadtxt("../VANDELS_data/combined_spec.txt"), axis=2)
-all_obj_fluxerrs =  np.expand_dims(np.loadtxt("../VANDELS_data/combined_spec_errs.txt"), axis=2) #erg/s/A/cm^2
+all_obj_fluxes = np.expand_dims(np.loadtxt("../../VANDELS_data/combinedspec-0008.txt"), axis=2)
+all_obj_fluxerrs =  np.expand_dims(np.loadtxt("../../VANDELS_data/combinederrspec-0008.txt"), axis=2) #erg/s/A/cm^2
 
-objdata = np.loadtxt("photoz_V_2comp.txt") #../VANDELS_data/VANDELS_fitresults_v1.txt
-photz = np.loadtxt("../VANDELS_data/VANDELS_fitresults_v1.txt", dtype="str", usecols=())
+objdata = np.loadtxt("photoz_V_2comp_1x5.txt") #../VANDELS_data/VANDELS_fitresults_v1.txt
+photz = np.loadtxt("../../VANDELS_data/catalogue_0008.txt", dtype="str", usecols=())
 
 ### Build coefficient values to apply Calzetti et al. (2000) dust reddening law fit
 
-wavs1D = np.loadtxt("../VANDELS_data/wavs.txt")*10**-4
-zarr = np.arange(0.01, 7.01, 0.01)
-wavs = np.zeros(len(wavs1D)*700)
-wavs.shape = (len(wavs1D), 700)
-
-for i in range(700):
-    wavs[:,i] = wavs1D/(1+zarr[i])
-
-coef = np.copy(wavs)
-for i in range(700):
-    for j in range(784):
-        if wavs[j,i] < 0.63:
-            coef[j, i] = 2.659*(-2.156 + (1.509/wavs[j,i]) - (0.198/(wavs[j,i]**2)) + (0.011/(wavs[j,i]**3))) + 4.05
-        else:
-            coef[j, i] = 2.659*(-1.857 + (1.040/wavs[j,i])) + 4.05
+wavs1D = np.arange(0.500166449, 0.899967, 2*0.00025529999733)
 
 
-oldages = np.array([508800000.0, 806400000.0, 1139100030.0, 1434000000.0, 1700000000.0, 2000000000.0, 2500000000.0, 3000000000.0, 4000000000.0]) #508800000.0, 806400000.0, 1139100030.0, 1434000000.0, 1700000000.0, 2000000000.0, 2500000000.0, 3000000000.0, 4000000000.0########
-newages = np.array([10000000.0, 25119000.0, 50000000.0])
+oldages = np.array([508800000.0, 718700032.0, 1015200000, 1434000000.0, 2000000000.0, 2500000000.0, 3000000000.0, 4000000000.0])
+newages = np.array([10000000.0, 25119000.0, 50000000.0, 101520000.0, 255000000.0, 508800000.0, 718700032.0, 1015200000.0])
 
 
 ### Build array for photometric redshift and parameter outputs
@@ -40,16 +26,12 @@ output = np.zeros(len(all_obj_fluxes)*9, dtype="float")
 output.shape = (len(all_obj_fluxes), 9)
 output[:,8] = 9999999999.
 
-lbtarr = cosmo.lookback_time(zarr).value
-f_old_array = 1.01 - np.logspace(-2, 0, 51)
-
 ### Perform model fitting using a 2D chi squared array over object and redshift with max age of stellar pop physically determined
 
 # obj_no phot_z age_old age_new f_old_V EBV norm chi SFR stellar_mass
 
 param = objdata #np.loadtxt("photoz_VANDELS_v1.txt") #obj_no phot_z age_old age_new f_old_V old_modifier EBV norm chi
 for m in range(len(param)):
-    print m
     oldage = np.argmin(np.abs(oldages - param[m, 2]))
     newage = np.argmin(np.abs(newages - param[m, 3]))
     redshift_ind = (param[m, 1]/0.01)-1
@@ -57,19 +39,10 @@ for m in range(len(param)):
     EBV = param[m, 5]
     const = param[m, 6]
 
-    """	
-    print "z: " + str(param[m, 1])
-    print "old age: " + str(oldages[oldage]) + " new age: " + str(newages[newage])
-    print "E(B-V): " + str(EBV)
-    print "f_old: " + str(f_old_V)
-    print "const: " + str(const)
-    print "Stellar Mass: " + str(round(param[m, 9]*10**-9,3)) + "*10^9 Solar masses"
-    print "SFR: " + str(param[m, 8])
-    print "Reduced Chi-squared value: " + str(param[m, 7]/784.)
-    """
 
-    th_flux_array_new_raw = np.loadtxt("../models/spec/newconst/age_" + str(newages[newage]) + ".txt")[:,redshift_ind:redshift_ind+1]#[:,:arg+1]
-    th_flux_array_old_raw = np.loadtxt("../models/spec/oldburst/age_" + str(oldages[oldage]) + ".txt")[:,redshift_ind:redshift_ind+1]#[:,:arg+1] #erg/s/A/cm^2
+    th_flux_array_new_raw = np.loadtxt("../../models/spec/const/age_" + str(newages[newage]) + "_EBV_" + str(EBV) + ".txt")[:,redshift_ind]
+    th_flux_array_old_raw = np.loadtxt("../../models/spec/burst/age_" + str(oldages[oldage]) + "_EBV_" + str(EBV) + ".txt")[:,redshift_ind] #erg/s/A/cm^2
+
 
     if f_old_V == 1.:
         th_flux_array_new = 0.*th_flux_array_new_raw
@@ -78,7 +51,7 @@ for m in range(len(param)):
         th_flux_array_new = np.copy(th_flux_array_new_raw)
         th_flux_array_old = (f_old_V/(1.-f_old_V))*th_flux_array_old_raw
 
-    th_flux_array = np.expand_dims((th_flux_array_old + th_flux_array_new)*(10**((-EBV*coef[:,redshift_ind:redshift_ind+1])/2.5)), axis=0) #microjanskys
+    th_flux_array = np.expand_dims((th_flux_array_old + th_flux_array_new), axis=0) #microjanskys
     
     pylab.figure()
     pylab.plot(wavs1D*10**4, np.squeeze(all_obj_fluxes[m,:,0]), color="blue")
@@ -89,8 +62,8 @@ for m in range(len(param)):
     pylab.ylim(1.1*np.min(all_obj_fluxes[m,:,0]), 1.3*np.max(all_obj_fluxes[m,:,0]))
     pylab.xlabel("Wavelength (A)", size=16)
     pylab.ylabel("F_lambda (erg/s/A/cm^2)", size=16)
-    pylab.text(5100, 0.8*np.max(all_obj_fluxes[m,:,0]),  "ACC_spec_z: " + str(param[m, 1]) + "   VANDELS_phot_z: " + photz[m,4] + "\n" + "E(B-V): " + str(EBV) + "   f_old: " + str(round(f_old_V, 3)) + "\n" + "old age: " + str(oldages[oldage]) + "  new age: " + str(newages[newage]) + "\n" + "Stellar Mass: " + str(round(param[m, 9]*10**-9, 2)) + "*10^9" + "\n" + "SFR: " + str(round(param[m, 8], 3)) + "\n" + "Reduced Chi-squared value: " + str(round(param[m, 7]/784., 3)), fontsize="14")
+    pylab.text(5100, 0.8*np.max(all_obj_fluxes[m,:,0]),  "ACC_spec_z: " + str(param[m, 1]) + "   VANDELS_phot_z: " + photz[m,3] + "\n" + "E(B-V): " + str(EBV) + "   f_old: " + str(round(f_old_V, 3)) + "\n" + "old age: " + str(oldages[oldage]) + "  new age: " + str(newages[newage]) + "\n" + "Stellar Mass: " + str(round(param[m, 9]*10**-9, 2)) + "*10^9" + "\n" + "SFR: " + str(round(param[m, 8], 3)) + "\n" + "Reduced Chi-squared value: " + str(round(param[m, 7]/784., 3)), fontsize="14")
     #pylab.show()
-    pylab.savefig("../VANDELS_data/plots/" + str(m+1) + ".png")
+    pylab.savefig("../../VANDELS_data/plots-0008/" + str(m+1) + ".png")
     pylab.close()
 
