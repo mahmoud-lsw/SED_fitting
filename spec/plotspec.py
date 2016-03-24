@@ -9,7 +9,7 @@ import pylab
 all_obj_fluxes = np.expand_dims(np.loadtxt("../../VANDELS_data/combinedspec-0008.txt"), axis=2)
 all_obj_fluxerrs =  np.expand_dims(np.loadtxt("../../VANDELS_data/combinederrspec-0008.txt"), axis=2) #erg/s/A/cm^2
 
-objdata = np.loadtxt("photoz_V_2comp_1x5.txt") #../VANDELS_data/VANDELS_fitresults_v1.txt
+objdata = np.loadtxt("photoz_V_2comp.txt") #../VANDELS_data/VANDELS_fitresults_v1.txt
 photz = np.loadtxt("../../VANDELS_data/catalogue_0008.txt", dtype="str", usecols=())
 
 ### Build coefficient values to apply Calzetti et al. (2000) dust reddening law fit
@@ -64,6 +64,6 @@ for m in range(len(param)):
     pylab.ylabel("F_lambda (erg/s/A/cm^2)", size=16)
     pylab.text(5100, 0.8*np.max(all_obj_fluxes[m,:,0]),  "ACC_spec_z: " + str(param[m, 1]) + "   VANDELS_phot_z: " + photz[m,3] + "\n" + "E(B-V): " + str(EBV) + "   f_old: " + str(round(f_old_V, 3)) + "\n" + "old age: " + str(oldages[oldage]) + "  new age: " + str(newages[newage]) + "\n" + "Stellar Mass: " + str(round(param[m, 9]*10**-9, 2)) + "*10^9" + "\n" + "SFR: " + str(round(param[m, 8], 3)) + "\n" + "Reduced Chi-squared value: " + str(round(param[m, 7]/784., 3)), fontsize="14")
     #pylab.show()
-    pylab.savefig("../../VANDELS_data/plots-0008/" + str(m+1) + ".png")
+    pylab.savefig("../../VANDELS_data/plots-0008/" + photz[m,0] + ".png")
     pylab.close()
 

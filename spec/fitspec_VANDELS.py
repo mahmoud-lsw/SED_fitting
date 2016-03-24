@@ -64,14 +64,14 @@ lbtarr = cosmo.lookback_time(zarr).value
 
 ### Perform model fitting using a 2D chi squared array over object and redshift with max age of stellar pop phy sically determined
 
-for j in range(8):
+for j in range(1):
     arg = 0
     while oldages[j]*(10**-9) < 14.0 - lbtarr[arg] and arg < 699:
         arg = arg+1
     for k in range(41):
         EBV = 0.025*k
         print "Initial burst age: " + str(oldages[j]) + ", EBV: " + str(EBV)
-        for l in range(8):
+        for l in range(5):
             th_flux_array_new_raw = np.loadtxt("../../models/spec/const/age_" + str(newages[l]) + "_EBV_" + str(EBV) + ".txt")[:,:arg+1]
             th_flux_array_old_raw = np.loadtxt("../../models/spec/burst/age_" + str(oldages[j]) + "_EBV_" + str(EBV) + ".txt")[:,:arg+1] #erg/s/A/cm^2
             for i in range(foldmin, foldmax+1):
